@@ -120,7 +120,7 @@ function readTblsEQP() {
     //EquipoImagenologia: NSerie,AreaDeServicio_idArea,Nombre,Marca,Modelo,Modalidad,FechaInstalacion,Estado
 
     var colocultas = [5]; //se oculta id area
-    var cabecerapac = ["Serie", "Nombre", "Marca", "Modelo", "Modalida", "Id_area", "Área", "Estado","Fecha Instalación"];
+    var cabecerapac = ["Serie", "Nombre", "Marca", "Modelo", "Modalidad", "Id_area", "Área", "Estado","Fecha Instalación"];
     CreateTableFromJSON(divtable, tabladatos, cabecerapac); //parametros referencia div, nombre tabla , cabecera
     var jsonData = {"nombre": "*"};
     var getEquipoimg = postRestService(uriserv + "/EquipoIMGEntity/ReadAll", jsonData);
