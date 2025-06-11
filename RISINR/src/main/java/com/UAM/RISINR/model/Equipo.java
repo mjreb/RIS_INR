@@ -38,8 +38,10 @@ public class Equipo implements Serializable {
     @Size(min = 1, max = 60)
     @Column(name = "Ubicacion")
     private String ubicacion;
+    
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "equipo")
     private ConfiguracionRIS configuracionRIS;
+    
     @JoinColumn(name = "AreaDeServicio_idArea", referencedColumnName = "idArea")
     @ManyToOne(optional = false)
     private AreaDeServicio areaDeServicioidArea;

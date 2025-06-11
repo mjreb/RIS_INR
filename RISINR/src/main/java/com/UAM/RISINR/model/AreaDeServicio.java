@@ -1,4 +1,6 @@
 package com.UAM.RISINR.model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.io.Serializable;
 import java.util.Collection;
 import jakarta.persistence.Basic;
@@ -40,12 +42,14 @@ public class AreaDeServicio implements Serializable {
     @Column(name = "Descripcion")
     private String descripcion;
     
+    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaidArea")
     private Collection<Usuario> usuarioCollection;
     
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
     private Collection<Equipo> equipoCollection;
     
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
     private Collection<EquipoImagenologia> equipoImagenologiaCollection;
     

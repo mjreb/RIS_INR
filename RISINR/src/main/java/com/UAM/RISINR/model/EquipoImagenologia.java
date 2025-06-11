@@ -1,5 +1,8 @@
 package com.UAM.RISINR.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -16,7 +19,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 
-import org.antlr.v4.runtime.misc.NotNull;
+//import org.antlr.v4.runtime.misc.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "EquipoImagenologia")
@@ -65,13 +69,16 @@ public class EquipoImagenologia implements Serializable {
     @Column(name = "Estado")
     private String estado;
     
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "equipoImagenologia")
     private Collection<AsignacionEstudio> asignacionEstudioCollection;
-    
+      
+    @JsonBackReference
     @JoinColumn(name = "AreaDeServicio_idArea", referencedColumnName = "idArea")
     @ManyToOne(optional = false)
     private AreaDeServicio areaDeServicioidArea;
     
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "equipoImagenologia")
     private Collection<AgendaDeServicio> agendaDeServicioCollection;
 

@@ -21,10 +21,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 
-/**
- *
- * @author DDT1
- */
 @Entity
 @Table(name = "AgendaDeServicio")
 public class AgendaDeServicio implements Serializable {
