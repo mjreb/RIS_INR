@@ -20,10 +20,11 @@ public class EquipoImagenologiaDTO {
         private String modalidad;
         private Integer idArea;
         private String nombreArea; 
+        private String estado; 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         private Date fechaInstalacion;
 
-    public EquipoImagenologiaDTO(String nSerie, String nombreEquipo, String marca, String modelo, String modalidad, Integer idArea, String nombreArea, Date fechaInstalacion) {
+    public EquipoImagenologiaDTO(String nSerie, String nombreEquipo, String marca, String modelo, String modalidad, Integer idArea, String nombreArea, String estado, Date fechaInstalacion) {
         this.nSerie = nSerie;
         this.nombreEquipo = nombreEquipo;
         this.marca = marca;
@@ -31,7 +32,16 @@ public class EquipoImagenologiaDTO {
         this.modalidad = modalidad;
         this.idArea = idArea;
         this.nombreArea = nombreArea;
+        this.estado = estado;
         this.fechaInstalacion = fechaInstalacion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
         
        

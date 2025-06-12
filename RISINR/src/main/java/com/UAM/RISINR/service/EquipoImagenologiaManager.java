@@ -26,14 +26,12 @@ public class EquipoImagenologiaManager {
     
      @Transactional(readOnly = true)
     public List<EquipoImagenologiaDTO> consultarTodos(){
-        System.out.println("Llego a consultarTodos(): antes");
+        
         
         List<EquipoImagenologia> equipos = repository.findAll();
-         System.out.println("LLA CANTIAD DE ELEMENTOS ES: " + equipos.size());
-        System.out.println("Despues del find all");
-         System.out.println("equipos antes de pasar a dto: " + equipos);
+         
         List<EquipoImagenologiaDTO> equiposDTO = convertirDTO(equipos);
-        System.out.println("equipos despues de pasar a dto: " + equiposDTO);
+        
         return equiposDTO;
     }    
     
@@ -53,9 +51,10 @@ public class EquipoImagenologiaManager {
              String modalidad = eqp.getModalidad();
              Integer idArea = eqp.getAreaDeServicioidArea().getIdArea();
              String nombreArea = eqp.getAreaDeServicioidArea().getNombre(); 
+             String estado = eqp.getEstado();
              Date fechaInstalacion = eqp.getFechaInstalacion();
              
-             EquipoImagenologiaDTO equipoDTO = new EquipoImagenologiaDTO(nSerie, nombreEquipo, marca, modelo, modalidad, idArea, nombreArea, fechaInstalacion);
+             EquipoImagenologiaDTO equipoDTO = new EquipoImagenologiaDTO(nSerie, nombreEquipo, marca, modelo, modalidad, idArea, nombreArea, estado,fechaInstalacion);
              equiposDTO.add(equipoDTO);
              
  

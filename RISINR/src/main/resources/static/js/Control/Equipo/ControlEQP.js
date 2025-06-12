@@ -126,8 +126,9 @@ function readTblsEQP() {
     var getEquipoimg = postRestService(uriserv + "/EquipoImagenologia/requestALL", jsonData);
     $.when(getEquipoimg.done(function (data) {
         console.log(data);
-        var array = convertTojsonArray(data[0]);
-        UpdateTableRows(tabladatos, array);
+        //var array = convertTojsonArray(data[0]);
+        //UpdateTableRows(tabladatos, array);
+        UpdateTableRows(tabladatos, data);
         tableRowColorCellSelectionKlib(tabladatos);
         hideTableColumns(tabladatos, colocultas); //ocultar columnas (medico, idpac) 
         addRadioButtonColumnPKTBL(tabladatos, columnaedicion, coleditar, roweditar, actionListener, columnaPK); //columna k con radiobutton y acctionlistne                     
