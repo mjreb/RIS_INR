@@ -176,6 +176,8 @@ function listenermodalEQPRIS(e) {
             break;
         case 'agregarEQPRIS':
             var formData = getFormData("CreateEqp", "formEquipoRIS");
+            console.log("Datos antes de la peticion" + formData);
+            console.log(formData);
             //var getEquipoimg =POSTForDataFiles(formData, uriserv + "/FormularioEqpImg/CreateEqp");
             var getEquipoimg = POSTForDataFiles(formData, uriserv + "/EquipoImagenologia/addEquipo");
             $.when(getEquipoimg.done(function (data) {

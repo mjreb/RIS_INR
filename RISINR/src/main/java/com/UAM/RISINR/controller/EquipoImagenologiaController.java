@@ -6,8 +6,11 @@ package com.UAM.RISINR.controller;
 
 import com.UAM.RISINR.model.EquipoImagenologia;
 import com.UAM.RISINR.model.dto.EquipoImagenologiaDTO;
+import com.UAM.RISINR.model.dto.PruebaEquipoImagenologiaDTO;
 import com.UAM.RISINR.service.EquipoImagenologiaManager;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,15 +43,10 @@ public class EquipoImagenologiaController {
     }
     
     @PostMapping("/addEquipo")
-    public ResponseEntity<EquipoImagenologiaDTO> addEquipo(@ModelAttribute EquipoImagenologia equipo, @RequestParam("areEqp") String area){
-        
-       System.out.println("Entró al controlador de crear");
-       System.out.println(equipo.toString());
-       EquipoImagenologiaDTO equipoIMG = manager.addEquipo(equipo, area);
-     
-        System.out.println("Salio del manager");
-        return ResponseEntity.ok(equipoIMG);
-    }
+    public ResponseEntity<EquipoImagenologiaDTO> addEquipo(@RequestParam Map<String, String> formData) {
+            EquipoImagenologiaDTO equipoDTO = manager.addEquipo(formData);
+            return ResponseEntity.ok(equipoDTO);
+        }
     
     
     

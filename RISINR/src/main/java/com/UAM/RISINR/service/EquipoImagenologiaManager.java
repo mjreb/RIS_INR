@@ -12,6 +12,7 @@ import com.UAM.RISINR.repository.EquipoImagenologiaRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +30,13 @@ public class EquipoImagenologiaManager {
     @Autowired
     public AreaDeServicioManager areaManager;
     
+    
     @Transactional(readOnly = true)
     public List<EquipoImagenologiaDTO> consultarTodos(){
  
         List<EquipoImagenologia> equipos = repository.findAll();
         List<EquipoImagenologiaDTO> equiposDTO = new ArrayList();
+        
         for (EquipoImagenologia eqp: equipos){
             EquipoImagenologiaDTO equipoDTO = convertirDTO(eqp);
             equiposDTO.add(equipoDTO);
@@ -42,45 +45,47 @@ public class EquipoImagenologiaManager {
     }   
     
     
-    public EquipoImagenologiaDTO addEquipo(EquipoImagenologia equipo, String idArea){
-        AreaDeServicio area = areaManager.consultarPorID(idArea);
-        equipo.setAreaDeServicioidArea(area);
+    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){
+        
+        EquipoImagenologia equipo = extraerDatos(formData);
         repository.save(equipo);
-        repository.findBynSerie(equipo.getNSerie());
-        return convertirDTO(repository.findBynSerie(equipo.getNSerie()));
+        return convertirDTO(equipo);
     }
-    
-    
-    
-    
+
     
     public EquipoImagenologiaDTO convertirDTO(EquipoImagenologia eqp){
-       /*
-        List<EquipoImagenologiaDTO> equiposDTO = new ArrayList();
-         System.out.println("Antes del  for en el manager");
-          System.out.println(equipos);
-        
-        for (EquipoImagenologia eqp: equipos){
-            System.out.println("Entró al for en el manager");
-            System.out.println("Antes del contenido del for" + equipos);
-            */
-             String nSerie = eqp.getNSerie();
-             String nombreEquipo = eqp.getNombre();
-             String marca = eqp.getMarca();
-             String modelo = eqp.getModelo();
-             String modalidad = eqp.getModalidad();
-             Integer idArea = eqp.getAreaDeServicioidArea().getIdArea();
-             String nombreArea = eqp.getAreaDeServicioidArea().getNombre(); 
-             String estado = eqp.getEstado();
-             Date fechaInstalacion = eqp.getFechaInstalacion();
-             
-             EquipoImagenologiaDTO equipoDTO = new EquipoImagenologiaDTO(nSerie, nombreEquipo, marca, modelo, modalidad, idArea, nombreArea, estado,fechaInstalacion);
-            // equiposDTO.add(equipoDTO);
-        //}
-        
-        //System.out.println(equiposDTO);
+        String nSerie = eqp.getnSerie();
+        String nombreEquipo = eqp.getNombre();
+        String marca = eqp.getMarca();
+        String modelo = eqp.getModelo();
+        String modalidad = eqp.getModalidad();
+        Integer idArea = eqp.getAreaDeServicioidArea().getIdArea();
+        String nombreArea = eqp.getAreaDeServicioidArea().getNombre(); 
+        String estado = eqp.getEstado();
+        Date fechaInstalacion = eqp.getFechaInstalacion();
+
+        EquipoImagenologiaDTO equipoDTO = new EquipoImagenologiaDTO(nSerie, nombreEquipo, marca, modelo, modalidad, idArea, nombreArea, estado,fechaInstalacion);
+
         return equipoDTO;  
     }
-    
+
+   public EquipoImagenologia extraerDatos(Map<String, String> formData){
+        String nSerie = formData.get("nserEQP");
+        String nombre = formData.get("nomEQP");
+        String marca = formData.get("marcaEQP");
+        String modelo = formData.get("modeloEQP");
+        String modalidad = formData.get("modalEqp");
+        AreaDeServicio  area = areaManager.consultarPorID(formData.get("areEqp"));  
+        String estado = formData.get("edoEqp");
+        
+        EquipoImagenologia equipo = new EquipoImagenologia(nSerie, nombre, marca, modelo, modalidad, estado, area);
+       
+       return equipo;
+   }
+       
+       
+       
+  
+  
     
 }

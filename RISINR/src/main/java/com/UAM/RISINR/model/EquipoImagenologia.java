@@ -100,14 +100,24 @@ public class EquipoImagenologia implements Serializable {
         this.modalidad = modalidad;
         this.estado = estado;
     }
-    
+
+    public EquipoImagenologia(String nSerie, String nombre, String marca, String modelo, String modalidad, String estado, AreaDeServicio areaDeServicioidArea) {
+        this.nSerie = nSerie;
+        this.nombre = nombre;
+        this.marca = marca;
+        this.modelo = modelo;
+        this.modalidad = modalidad;
+        this.estado = estado;
+        this.areaDeServicioidArea = areaDeServicioidArea;
+    }
     
 
-    public String getNSerie() {
+
+    public String getnSerie() {
         return nSerie;
     }
 
-    public void setNSerie(String nSerie) {
+    public void setnSerie(String nSerie) {
         this.nSerie = nSerie;
     }
 
