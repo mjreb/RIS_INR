@@ -100,6 +100,8 @@ public class EquipoImagenologia implements Serializable {
         this.modalidad = modalidad;
         this.estado = estado;
     }
+    
+    
 
     public String getNSerie() {
         return nSerie;
