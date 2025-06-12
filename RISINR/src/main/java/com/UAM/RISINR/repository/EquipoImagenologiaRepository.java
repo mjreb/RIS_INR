@@ -24,6 +24,7 @@ public interface EquipoImagenologiaRepository extends JpaRepository<EquipoImagen
     List<EquipoImagenologia> findByModalidad(String modalidad);
     List<EquipoImagenologia> findByFechaInstalacion(Date fechaInstalacion); 
     List<EquipoImagenologia> findByEstado(String estado);
+    EquipoImagenologia findBynSerie(String nSerie);
 
     
 }

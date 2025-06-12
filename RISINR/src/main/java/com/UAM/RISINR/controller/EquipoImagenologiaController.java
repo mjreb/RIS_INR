@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -36,4 +38,18 @@ public class EquipoImagenologiaController {
         System.out.println("Salio del manager");
         return ResponseEntity.ok(datos);
     }
+    
+    @PostMapping("/addEquipo")
+    public ResponseEntity<EquipoImagenologiaDTO> addEquipo(@ModelAttribute EquipoImagenologia equipo, @RequestParam("areEqp") String area){
+        
+       System.out.println("Entró al controlador de crear");
+       System.out.println(equipo.toString());
+       EquipoImagenologiaDTO equipoIMG = manager.addEquipo(equipo, area);
+     
+        System.out.println("Salio del manager");
+        return ResponseEntity.ok(equipoIMG);
+    }
+    
+    
+    
 }

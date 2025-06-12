@@ -4,8 +4,10 @@
  */
 package com.UAM.RISINR.service;
 
+import com.UAM.RISINR.model.AreaDeServicio;
 import com.UAM.RISINR.model.EquipoImagenologia;
 import com.UAM.RISINR.model.dto.EquipoImagenologiaDTO;
+import com.UAM.RISINR.repository.AreaDeServicioRepository;
 import com.UAM.RISINR.repository.EquipoImagenologiaRepository;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,18 +26,36 @@ public class EquipoImagenologiaManager {
     @Autowired
     public EquipoImagenologiaRepository repository; 
     
-     @Transactional(readOnly = true)
-    public List<EquipoImagenologiaDTO> consultarTodos(){
-        
-        
-        List<EquipoImagenologia> equipos = repository.findAll();
-         
-        List<EquipoImagenologiaDTO> equiposDTO = convertirDTO(equipos);
-        
-        return equiposDTO;
-    }    
+    @Autowired
+    public AreaDeServicioManager areaManager;
     
-    public List<EquipoImagenologiaDTO> convertirDTO(List<EquipoImagenologia> equipos){
+    @Transactional(readOnly = true)
+    public List<EquipoImagenologiaDTO> consultarTodos(){
+ 
+        List<EquipoImagenologia> equipos = repository.findAll();
+        List<EquipoImagenologiaDTO> equiposDTO = new ArrayList();
+        for (EquipoImagenologia eqp: equipos){
+            EquipoImagenologiaDTO equipoDTO = convertirDTO(eqp);
+            equiposDTO.add(equipoDTO);
+        }
+        return equiposDTO;
+    }   
+    
+    
+    public EquipoImagenologiaDTO addEquipo(EquipoImagenologia equipo, String idArea){
+        AreaDeServicio area = areaManager.consultarPorID(idArea);
+        equipo.setAreaDeServicioidArea(area);
+        repository.save(equipo);
+        repository.findBynSerie(equipo.getNSerie());
+        return convertirDTO(repository.findBynSerie(equipo.getNSerie()));
+    }
+    
+    
+    
+    
+    
+    public EquipoImagenologiaDTO convertirDTO(EquipoImagenologia eqp){
+       /*
         List<EquipoImagenologiaDTO> equiposDTO = new ArrayList();
          System.out.println("Antes del  for en el manager");
           System.out.println(equipos);
@@ -43,7 +63,7 @@ public class EquipoImagenologiaManager {
         for (EquipoImagenologia eqp: equipos){
             System.out.println("Entró al for en el manager");
             System.out.println("Antes del contenido del for" + equipos);
-            
+            */
              String nSerie = eqp.getNSerie();
              String nombreEquipo = eqp.getNombre();
              String marca = eqp.getMarca();
@@ -55,15 +75,12 @@ public class EquipoImagenologiaManager {
              Date fechaInstalacion = eqp.getFechaInstalacion();
              
              EquipoImagenologiaDTO equipoDTO = new EquipoImagenologiaDTO(nSerie, nombreEquipo, marca, modelo, modalidad, idArea, nombreArea, estado,fechaInstalacion);
-             equiposDTO.add(equipoDTO);
-             
- 
-        }
+            // equiposDTO.add(equipoDTO);
+        //}
         
-        System.out.println(equiposDTO);
-        return equiposDTO;
-        
+        //System.out.println(equiposDTO);
+        return equipoDTO;  
     }
     
-
+    
 }

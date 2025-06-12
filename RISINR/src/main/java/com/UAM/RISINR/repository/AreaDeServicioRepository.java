@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AreaDeServicioRepository extends JpaRepository<AreaDeServicio, Integer> {
-    
+
+    AreaDeServicio findByIdArea(Integer id);
     
 }
