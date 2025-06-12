@@ -1,5 +1,5 @@
-var uriserv = "/RISSERVER/rest/USRSesionRST";
-
+//var uriserv = "/RISSERVER/rest/USRSesionRST";
+var uriserv = "/RISSERVER";
 function activaBotonesEQP(table, bandera) {
     //bandera: [true,false]
     document.getElementById("btnAdd" + table).disabled = !bandera;
@@ -123,8 +123,9 @@ function readTblsEQP() {
     var cabecerapac = ["Serie", "Nombre", "Marca", "Modelo", "Modalidad", "Id_area", "Área", "Estado","Fecha Instalación"];
     CreateTableFromJSON(divtable, tabladatos, cabecerapac); //parametros referencia div, nombre tabla , cabecera
     var jsonData = {"nombre": "*"};
-    var getEquipoimg = postRestService(uriserv + "/EquipoIMGEntity/ReadAll", jsonData);
+    var getEquipoimg = postRestService(uriserv + "/EquipoImagenologia/requestALL", jsonData);
     $.when(getEquipoimg.done(function (data) {
+        console.log(data);
         var array = convertTojsonArray(data[0]);
         UpdateTableRows(tabladatos, array);
         tableRowColorCellSelectionKlib(tabladatos);

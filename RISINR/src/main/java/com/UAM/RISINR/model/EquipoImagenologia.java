@@ -69,18 +69,21 @@ public class EquipoImagenologia implements Serializable {
     @Column(name = "Estado")
     private String estado;
     
-    @JsonIgnore
+  /*
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "equipoImagenologia")
     private Collection<AsignacionEstudio> asignacionEstudioCollection;
       
-    @JsonBackReference
+     @OneToMany(cascade = CascadeType.ALL, mappedBy = "equipoImagenologia")
+    private Collection<AgendaDeServicio> agendaDeServicioCollection;
+    */
+    
+    @JsonManagedReference
     @JoinColumn(name = "AreaDeServicio_idArea", referencedColumnName = "idArea")
     @ManyToOne(optional = false)
     private AreaDeServicio areaDeServicioidArea;
     
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "equipoImagenologia")
-    private Collection<AgendaDeServicio> agendaDeServicioCollection;
+
+   
 
     public EquipoImagenologia() {
     }
@@ -153,7 +156,16 @@ public class EquipoImagenologia implements Serializable {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+    
+     public AreaDeServicio getAreaDeServicioidArea() {
+        return areaDeServicioidArea;
+    }
 
+    public void setAreaDeServicioidArea(AreaDeServicio areaDeServicioidArea) {
+        this.areaDeServicioidArea = areaDeServicioidArea;
+    }
+
+/*
     public Collection<AsignacionEstudio> getAsignacionEstudioCollection() {
         return asignacionEstudioCollection;
     }
@@ -162,14 +174,7 @@ public class EquipoImagenologia implements Serializable {
         this.asignacionEstudioCollection = asignacionEstudioCollection;
     }
 
-    public AreaDeServicio getAreaDeServicioidArea() {
-        return areaDeServicioidArea;
-    }
-
-    public void setAreaDeServicioidArea(AreaDeServicio areaDeServicioidArea) {
-        this.areaDeServicioidArea = areaDeServicioidArea;
-    }
-
+   
 
     public Collection<AgendaDeServicio> getAgendaDeServicioCollection() {
         return agendaDeServicioCollection;
@@ -178,7 +183,7 @@ public class EquipoImagenologia implements Serializable {
     public void setAgendaDeServicioCollection(Collection<AgendaDeServicio> agendaDeServicioCollection) {
         this.agendaDeServicioCollection = agendaDeServicioCollection;
     }
-
+*/
     @Override
     public int hashCode() {
         int hash = 0;

@@ -43,18 +43,23 @@ public class AreaDeServicio implements Serializable {
     private String descripcion;
     
     
+    
+    
+    @JsonBackReference
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
+    private Collection<EquipoImagenologia> equipoImagenologiaCollection;
+    /*
+    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
+    private Collection<Estudio> estudioCollection;
+    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaidArea")
     private Collection<Usuario> usuarioCollection;
     
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
     private Collection<Equipo> equipoCollection;
     
-    @JsonManagedReference
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
-    private Collection<EquipoImagenologia> equipoImagenologiaCollection;
-    
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
-    private Collection<Estudio> estudioCollection;
+    */
 
     public AreaDeServicio() {
     }
@@ -93,7 +98,7 @@ public class AreaDeServicio implements Serializable {
         this.descripcion = descripcion;
     }
 
-    
+    /*
     public Collection<Usuario> getUsuarioCollection() {
         return usuarioCollection;
     }
@@ -112,13 +117,7 @@ public class AreaDeServicio implements Serializable {
     }
 
     
-    public Collection<EquipoImagenologia> getEquipoImagenologiaCollection() {
-        return equipoImagenologiaCollection;
-    }
-
-    public void setEquipoImagenologiaCollection(Collection<EquipoImagenologia> equipoImagenologiaCollection) {
-        this.equipoImagenologiaCollection = equipoImagenologiaCollection;
-    }
+    
 
     
     public Collection<Estudio> getEstudioCollection() {
@@ -127,6 +126,14 @@ public class AreaDeServicio implements Serializable {
 
     public void setEstudioCollection(Collection<Estudio> estudioCollection) {
         this.estudioCollection = estudioCollection;
+    }
+    */
+    public Collection<EquipoImagenologia> getEquipoImagenologiaCollection() {
+        return equipoImagenologiaCollection;
+    }
+
+    public void setEquipoImagenologiaCollection(Collection<EquipoImagenologia> equipoImagenologiaCollection) {
+        this.equipoImagenologiaCollection = equipoImagenologiaCollection;
     }
 
     @Override

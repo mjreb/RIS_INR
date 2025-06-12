@@ -141,9 +141,13 @@ function postRestService(urlser, jsonData) {
         url: urlser,
         type: 'POST', // Tipo de envio 
         dataType: 'json', //Tipo de Respuesta
-        data: jsonData //datos a enviar
+        //contentType: "application/json",
+        //data: JSON.stringify(jsonData) // 👈 Convierte tu objeto JS a JSON
+        //data: jsonData //datos a enviar
+        data: null
     }).done(function (data, textStatus, jqXHR) {
-        //console.log(data);
+    console.log("Todo funcionó increíble");    
+    console.log(data);
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert("Error al procesar la respuesta " + errorThrown);
     }).always(function (jqXHROrData, textStatus, jqXHROrErrorThrown) {
