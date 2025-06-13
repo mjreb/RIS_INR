@@ -47,8 +47,11 @@ public class EquipoImagenologiaController {
     
     @PostMapping("/addEquipo")
     public ResponseEntity<Object> addEquipo(@RequestParam Map<String, String> formData) {
-            EquipoImagenologiaDTO equipoDTO = manager.addEquipo(formData);
+            System.out.println("Entró al controlador para agreagar");
+        
+        EquipoImagenologiaDTO equipoDTO = manager.addEquipo(formData);
             
+        System.out.println("Salio del manager");
             if(equipoDTO != null){
                  return ResponseEntity.ok(equipoDTO);
             }else{
@@ -63,11 +66,11 @@ public class EquipoImagenologiaController {
             List<Object> equipos = new ArrayList();
             
             if (equipo == null) {
-                equipos.add(0);
+                equipos.add("0");
                 equipos.add(null);
                  return ResponseEntity.status(HttpStatus.CONFLICT).body("El equipo no se pudo editar correctamente");
             } else {
-                equipos.add(0);
+                equipos.add("1");
                 equipos.add(equipo);
                 return ResponseEntity.ok(equipos); 
             }

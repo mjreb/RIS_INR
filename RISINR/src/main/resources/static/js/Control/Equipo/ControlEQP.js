@@ -58,7 +58,7 @@ function barraBotonesEQP(e) {
                 document.getElementById("marcaEQP").value = columnasrow[2].innerText;
                 document.getElementById("modeloEQP").value = columnasrow[3].innerText;
 
-                document.getElementById("modalEqp").value = columnasrow[4].innerText;
+                document.getElementById("modalEQP").value = columnasrow[4].innerText;
                 //listbox modalidad
                 document.getElementById("idmod").value = columnasrow[4].innerText;
                 //listbox modalidad                
@@ -159,7 +159,8 @@ function listenermodalEQPRIS(e) {
             var getEquipoimg = POSTForDataFiles(formData, uriserv + "/EquipoImagenologia/editEquipo");
             $.when(getEquipoimg.done(function (data) {
                 console.log(data);
-                var resp = JSON.parse(data);
+                //var resp = JSON.parse(data);
+                resp = data;
                 console.log(resp);
                 if (resp[0] === '1') {
                     alert("Se actualizo el registro con exito");

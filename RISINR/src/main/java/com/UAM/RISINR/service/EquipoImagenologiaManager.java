@@ -47,7 +47,7 @@ public class EquipoImagenologiaManager {
     
     public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){  
         String nSerie = formData.get("nserEQP");
-        EquipoImagenologia equipo = null;
+        EquipoImagenologia equipo;
         if(validarEquipo(nSerie) == null){
             equipo = extraerDatos(formData);
             repository.save(equipo);
@@ -69,7 +69,7 @@ public class EquipoImagenologiaManager {
             case "nomEQP": equipo.setNombre(valor); break;
             case "modeloEQP": equipo.setModelo(valor); break;
             case "marcaEQP": equipo.setMarca(valor); break;
-            case "modalEqp": equipo.setModalidad(valor); break;
+            case "modalEQP": equipo.setModalidad(valor); break;
             case "edoEqp": equipo.setEstado(valor); break;
             case "areEqp":
                 var area = areaManager.consultarPorID(valor);
@@ -106,7 +106,7 @@ public class EquipoImagenologiaManager {
         String nombre = formData.get("nomEQP");
         String marca = formData.get("marcaEQP");
         String modelo = formData.get("modeloEQP");
-        String modalidad = formData.get("modalEqp");
+        String modalidad = formData.get("modalEQP");
         AreaDeServicio area = areaManager.consultarPorID(formData.get("areEqp"));  
         String estado = formData.get("edoEqp");
         
