@@ -45,12 +45,39 @@ public class EquipoImagenologiaManager {
     }   
     
     
-    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){
-        
+    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){    
         EquipoImagenologia equipo = extraerDatos(formData);
         repository.save(equipo);
         return convertirDTO(equipo);
     }
+    
+    public EquipoImagenologia  edit(Map<String, String> formData){
+      
+       String nSerie = formData.get("nserEQP");
+       EquipoImagenologia equipo = repository.findBynSerie(nSerie);
+       if(equipo == null){
+           return null;
+       }
+           
+       formData.forEach((campo, valor) -> {
+        switch (campo) {
+            case "nomEQP": equipo.setNombre(valor); break;
+            case "modeloEQP": equipo.setModelo(valor); break;
+            case "marcaEQP": equipo.setMarca(valor); break;
+            case "modalEqp": equipo.setModalidad(valor); break;
+            case "edoEqp": equipo.setEstado(valor); break;
+            case "areEqp":
+                var area = areaManager.consultarPorID(valor);
+                if (area != null) {
+                    equipo.setAreaDeServicioidArea(area);
+                }
+                break;
+        }
+    });      
+        repository.save(equipo);
+        return equipo;
+   }
+     
 
     
     public EquipoImagenologiaDTO convertirDTO(EquipoImagenologia eqp){
@@ -75,17 +102,14 @@ public class EquipoImagenologiaManager {
         String marca = formData.get("marcaEQP");
         String modelo = formData.get("modeloEQP");
         String modalidad = formData.get("modalEqp");
-        AreaDeServicio  area = areaManager.consultarPorID(formData.get("areEqp"));  
+        AreaDeServicio area = areaManager.consultarPorID(formData.get("areEqp"));  
         String estado = formData.get("edoEqp");
         
         EquipoImagenologia equipo = new EquipoImagenologia(nSerie, nombre, marca, modelo, modalidad, estado, area);
        
        return equipo;
    }
-       
-       
-       
-  
-  
-    
+   
+   
+   
 }

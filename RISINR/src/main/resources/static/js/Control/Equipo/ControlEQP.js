@@ -156,7 +156,7 @@ function listenermodalEQPRIS(e) {
         case 'updateEQPRIS':
             var formData = getFormData("UpdateEqp", "formEquipoRIS");
             //var getEquipoimg =POSTForDataFiles(formData, uriserv + "/FormularioEqpImg/UpdateEqp");
-            var getEquipoimg = POSTForDataFiles(formData, uriserv + "/FormularioEqpImg");
+            var getEquipoimg = POSTForDataFiles(formData, uriserv + "/EquipoImagenologia/editEquipo");
             $.when(getEquipoimg.done(function (data) {
                 console.log(data);
                 var resp = JSON.parse(data);
