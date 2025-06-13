@@ -45,14 +45,19 @@ public class EquipoImagenologiaManager {
     }   
     
     
-    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){    
-        EquipoImagenologia equipo = extraerDatos(formData);
-        repository.save(equipo);
-        return convertirDTO(equipo);
+    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){  
+        String nSerie = formData.get("nserEQP");
+        EquipoImagenologia equipo = null;
+        if(validarEquipo(nSerie) == null){
+            equipo = extraerDatos(formData);
+            repository.save(equipo);
+            return convertirDTO(equipo);
+        } else{
+            return null;
+        } 
     }
     
     public EquipoImagenologia  edit(Map<String, String> formData){
-      
        String nSerie = formData.get("nserEQP");
        EquipoImagenologia equipo = repository.findBynSerie(nSerie);
        if(equipo == null){
@@ -108,6 +113,13 @@ public class EquipoImagenologiaManager {
         EquipoImagenologia equipo = new EquipoImagenologia(nSerie, nombre, marca, modelo, modalidad, estado, area);
        
        return equipo;
+   }
+   
+   public EquipoImagenologia  validarEquipo(String nSerie){
+       
+        EquipoImagenologia equipo = repository.findBynSerie(nSerie);
+        return equipo;
+ 
    }
    
    

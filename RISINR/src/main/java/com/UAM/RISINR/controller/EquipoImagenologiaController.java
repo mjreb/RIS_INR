@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,34 +46,31 @@ public class EquipoImagenologiaController {
     }
     
     @PostMapping("/addEquipo")
-    public ResponseEntity<EquipoImagenologiaDTO> addEquipo(@RequestParam Map<String, String> formData) {
+    public ResponseEntity<Object> addEquipo(@RequestParam Map<String, String> formData) {
             EquipoImagenologiaDTO equipoDTO = manager.addEquipo(formData);
-            return ResponseEntity.ok(equipoDTO);
+            
+            if(equipoDTO != null){
+                 return ResponseEntity.ok(equipoDTO);
+            }else{
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("El equipo ya está registrado con ese número de serie.");
+            }
         }
     
     
     @PostMapping("/editEquipo")
     public ResponseEntity<Object> editEquipo(@RequestParam Map<String, String> formData) {
-            
             EquipoImagenologia equipo = manager.edit(formData);
- 
             List<Object> equipos = new ArrayList();
             
             if (equipo == null) {
                 equipos.add(0);
                 equipos.add(null);
+                 return ResponseEntity.status(HttpStatus.CONFLICT).body("El equipo no se pudo editar correctamente");
             } else {
                 equipos.add(0);
                 equipos.add(equipo);
+                return ResponseEntity.ok(equipos); 
             }
-
-        
-            return ResponseEntity.ok(equipos);
         }
-    
-    
-    
-    
-    
-    
+  
 }
