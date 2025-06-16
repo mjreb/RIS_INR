@@ -35,6 +35,9 @@ public class EquipoImagenologiaDTO {
         this.estado = estado;
         this.fechaInstalacion = fechaInstalacion;
     }
+    
+    public EquipoImagenologiaDTO(){
+    }
 
     public String getEstado() {
         return estado;

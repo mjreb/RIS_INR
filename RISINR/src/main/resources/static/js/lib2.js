@@ -713,7 +713,8 @@ function POSTForDataFiles(formData, servicio) {
         enctype: 'multipart/form-data',
         contentType: false  // tell jQuery not to set contentType        
     }).done(function (data) {
-        //console.log(data);
+        //console.log("OBJETO NUEVOOOO");
+        console.log(data);
     }).fail(function (jqXHROrData, textStatus, jqXHROrErrorThrown) {
         console.log(textStatus);
         console.log(jqXHROrData);

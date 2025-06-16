@@ -77,7 +77,7 @@ public class EquipoImagenologia implements Serializable {
     private Collection<AgendaDeServicio> agendaDeServicioCollection;
     */
     
-    @JsonManagedReference
+    //@JsonManagedReference
     @JoinColumn(name = "AreaDeServicio_idArea", referencedColumnName = "idArea")
     @ManyToOne(optional = false)
     private AreaDeServicio areaDeServicioidArea;
@@ -101,11 +101,23 @@ public class EquipoImagenologia implements Serializable {
         this.estado = estado;
     }
 
-    public String getNSerie() {
+    public EquipoImagenologia(String nSerie, String nombre, String marca, String modelo, String modalidad, String estado, AreaDeServicio areaDeServicioidArea) {
+        this.nSerie = nSerie;
+        this.nombre = nombre;
+        this.marca = marca;
+        this.modelo = modelo;
+        this.modalidad = modalidad;
+        this.estado = estado;
+        this.areaDeServicioidArea = areaDeServicioidArea;
+    }
+    
+
+
+    public String getnSerie() {
         return nSerie;
     }
 
-    public void setNSerie(String nSerie) {
+    public void setnSerie(String nSerie) {
         this.nSerie = nSerie;
     }
 
