@@ -77,7 +77,7 @@ public class EquipoImagenologia implements Serializable {
     private Collection<AgendaDeServicio> agendaDeServicioCollection;
     */
     
-    @JsonManagedReference
+    //@JsonManagedReference
     @JoinColumn(name = "AreaDeServicio_idArea", referencedColumnName = "idArea")
     @ManyToOne(optional = false)
     private AreaDeServicio areaDeServicioidArea;

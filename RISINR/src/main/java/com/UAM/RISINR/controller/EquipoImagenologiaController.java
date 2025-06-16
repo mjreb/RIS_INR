@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EquipoImagenologiaController {
     
     @Autowired
-    public EquipoImagenologiaManager manager; 
+    private EquipoImagenologiaManager manager; 
     
     
     @PostMapping("/requestALL")
@@ -49,7 +49,7 @@ public class EquipoImagenologiaController {
     public ResponseEntity<Object> addEquipo(@RequestParam Map<String, String> formData) {
             System.out.println("Entró al controlador para agreagar");
         
-        EquipoImagenologiaDTO equipoDTO = manager.addEquipo(formData);
+        EquipoImagenologiaDTO equipoDTO = manager.add(formData);
             
         System.out.println("Salio del manager");
             if(equipoDTO != null){

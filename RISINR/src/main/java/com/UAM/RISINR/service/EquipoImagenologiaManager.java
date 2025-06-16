@@ -25,10 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class EquipoImagenologiaManager {
     
     @Autowired
-    public EquipoImagenologiaRepository repository; 
+    private EquipoImagenologiaRepository repository; 
     
     @Autowired
-    public AreaDeServicioManager areaManager;
+    private AreaDeServicioManager areaManager;
     
     
     @Transactional(readOnly = true)
@@ -45,7 +45,7 @@ public class EquipoImagenologiaManager {
     }   
     
     
-    public EquipoImagenologiaDTO addEquipo(Map<String, String> formData){  
+    public EquipoImagenologiaDTO add(Map<String, String> formData){  
         String nSerie = formData.get("nserEQP");
         EquipoImagenologia equipo;
         if(validarEquipo(nSerie) == null){
@@ -59,7 +59,7 @@ public class EquipoImagenologiaManager {
     
     public EquipoImagenologia  edit(Map<String, String> formData){
        String nSerie = formData.get("nserEQP");
-       EquipoImagenologia equipo = repository.findBynSerie(nSerie);
+       EquipoImagenologia equipo = validarEquipo(nSerie);
        if(equipo == null){
            return null;
        }

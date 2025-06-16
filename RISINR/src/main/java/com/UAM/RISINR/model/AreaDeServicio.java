@@ -45,7 +45,7 @@ public class AreaDeServicio implements Serializable {
     
     
     
-    @JsonBackReference
+    //@JsonBackReference
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "areaDeServicioidArea")
     private Collection<EquipoImagenologia> equipoImagenologiaCollection;
     /*
