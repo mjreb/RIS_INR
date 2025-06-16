@@ -6,7 +6,6 @@ package com.UAM.RISINR.controller;
 
 import com.UAM.RISINR.model.EquipoImagenologia;
 import com.UAM.RISINR.model.dto.EquipoImagenologiaDTO;
-import com.UAM.RISINR.model.dto.PruebaEquipoImagenologiaDTO;
 import com.UAM.RISINR.service.EquipoImagenologiaManager;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import jakarta.servlet.http.HttpServletRequest;
