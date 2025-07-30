@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.UAM.RISINR.model;
 
 import java.io.Serializable;
@@ -12,6 +7,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
@@ -23,10 +19,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 
-/**
- *
- * @author DDT1
- */
 @Entity
 @Table(name = "Usuario")
 public class Usuario implements Serializable {
@@ -34,45 +26,53 @@ public class Usuario implements Serializable {
     private static final long serialVersionUID = 1L;
     @EmbeddedId
     protected UsuarioPK usuarioPK;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "Nombre")
     private String nombre;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "ApellidoPaterno")
     private String apellidoPaterno;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "ApellidoMaterno")
     private String apellidoMaterno;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "UsuarioID")
     private String usuarioID;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 20)
     @Column(name = "Passwd")
     private String passwd;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "Estado")
     private String estado;
+    
     @JoinColumn(name = "Area_idArea", referencedColumnName = "idArea")
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private AreaDeServicio areaidArea;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario")
+    
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
     private Collection<Perfil> perfilCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario")
+    
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
     private Collection<ControlEstudios> controlEstudiosCollection;
-    //@OneToOne(cascade = CascadeType.PERSIST)
-    //private AreaDeServicio areaidArea;
+    
 
     public Usuario() {
     }
@@ -186,20 +186,15 @@ public class Usuario implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Usuario)) {
-            return false;
-        }
+        if (this == object) return true;
+        if (!(object instanceof Usuario)) return false;
         Usuario other = (Usuario) object;
-        if ((this.usuarioPK == null && other.usuarioPK != null) || (this.usuarioPK != null && !this.usuarioPK.equals(other.usuarioPK))) {
-            return false;
-        }
-        return true;
+        return java.util.Objects.equals(this.usuarioPK, other.usuarioPK);
     }
 
     @Override
     public String toString() {
-        return "com.RIS.MVC.model.JPA.entities.Usuario[ usuarioPK=" + usuarioPK + " ]";
+        return "Usuario{usuarioPK=" + usuarioPK + ", usuarioID='" + usuarioID + "'}";
     }
     
 }

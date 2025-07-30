@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.UAM.RISINR.model;
 
 import java.io.Serializable;
@@ -11,11 +6,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.Objects;
 
-/**
- *
- * @author DDT1
- */
 @Embeddable
 public class SesionPK implements Serializable {
 
@@ -43,16 +35,19 @@ public class SesionPK implements Serializable {
     public SesionPK() {
     }
 
+    /*
     public SesionPK(long horaInicio, String usuarioID) {
         this.horaInicio = horaInicio;
         this.usuarioID = usuarioID;
     }
-    
-    public SesionPK(long horaInicio, String usuarioID, int usuarioNumEmpleado, String usuarioCURP) {
+  */
+
+    public SesionPK(long horaInicio, String usuarioID, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID) {
         this.horaInicio = horaInicio;
         this.usuarioID = usuarioID;
         this.usuarioNumEmpleado = usuarioNumEmpleado;
         this.usuarioCURP = usuarioCURP;
+        this.aplicacionID = aplicacionID;
     }
 
     public long getHoraInicio() {
@@ -78,6 +73,7 @@ public class SesionPK implements Serializable {
     public void setusuarioNumEmpleado(int usuarioNumEmpleado) {
         this.usuarioNumEmpleado = usuarioNumEmpleado;
     }
+    
     public int getaplicacionID() {
         return aplicacionID;
     }
@@ -99,31 +95,28 @@ public class SesionPK implements Serializable {
     
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (int) horaInicio;
-        hash += (usuarioID != null ? usuarioID.hashCode() : 0);
-        return hash;
+        return Objects.hash(horaInicio, usuarioID, usuarioCURP, usuarioNumEmpleado, aplicacionID);
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof SesionPK)) {
-            return false;
-        }
+        if (this == object) return true;
+        if (!(object instanceof SesionPK)) return false;
         SesionPK other = (SesionPK) object;
-        if (this.horaInicio != other.horaInicio) {
-            return false;
-        }
-        if ((this.usuarioID == null && other.usuarioID != null) || (this.usuarioID != null && !this.usuarioID.equals(other.usuarioID))) {
-            return false;
-        }
-        return true;
+        return horaInicio == other.horaInicio
+            && usuarioNumEmpleado == other.usuarioNumEmpleado
+            && aplicacionID == other.aplicacionID
+            && Objects.equals(usuarioID, other.usuarioID)
+            && Objects.equals(usuarioCURP, other.usuarioCURP);
     }
 
     @Override
     public String toString() {
-        return "com.RIS.MVC.model.JPA.entities.SesionPK[ horaInicio=" + horaInicio + ", usuarioID=" + usuarioID + " ]";
+        return "SesionPK{horaInicio=" + horaInicio +
+               ", usuarioID='" + usuarioID + '\'' +
+               ", usuarioCURP='" + usuarioCURP + '\'' +
+               ", usuarioNumEmpleado=" + usuarioNumEmpleado +
+               ", aplicacionID=" + aplicacionID + '}';
     }
     
 }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.UAM.RISINR.model;
 
 import java.io.Serializable;
@@ -12,18 +7,14 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- *
- * @author DDT1
- */
+
 @Embeddable
 public class UsuarioPK implements Serializable {
 
-    @Basic(optional = false)
     @NotNull
     @Column(name = "NumEmpleado")
     private int numEmpleado;
-    @Basic(optional = false)
+    
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "CURP")
@@ -63,23 +54,16 @@ public class UsuarioPK implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof UsuarioPK)) {
-            return false;
-        }
+        if (this == object) return true;
+        if (!(object instanceof UsuarioPK)) return false;
         UsuarioPK other = (UsuarioPK) object;
-        if (this.numEmpleado != other.numEmpleado) {
-            return false;
-        }
-        if ((this.curp == null && other.curp != null) || (this.curp != null && !this.curp.equals(other.curp))) {
-            return false;
-        }
-        return true;
+        return this.numEmpleado == other.numEmpleado &&
+               java.util.Objects.equals(this.curp, other.curp);
     }
 
     @Override
     public String toString() {
-        return "com.RIS.MVC.model.JPA.entities.UsuarioPK[ numEmpleado=" + numEmpleado + ", curp=" + curp + " ]";
+        return "UsuarioPK{numEmpleado=" + numEmpleado + ", curp='" + curp + "'}";
     }
     
 }

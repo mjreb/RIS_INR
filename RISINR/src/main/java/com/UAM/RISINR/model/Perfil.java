@@ -5,33 +5,35 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "Perfil")
-
 public class Perfil implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    
     @EmbeddedId
     protected PerfilPK perfilPK;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "Estado")
     private int estado;
+    
     @JoinColumn(name = "Rol_idRol", referencedColumnName = "idRol", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Rol rol;
+    
     @JoinColumns({
         @JoinColumn(name = "Usuario_NumEmpleado", referencedColumnName = "NumEmpleado", insertable = false, updatable = false),
         @JoinColumn(name = "Usuario_CURP", referencedColumnName = "CURP", insertable = false, updatable = false)})
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Usuario usuario;
 
     public Perfil() {
@@ -91,20 +93,15 @@ public class Perfil implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Perfil)) {
-            return false;
-        }
+       if (this == object) return true;
+        if (!(object instanceof Perfil)) return false;
         Perfil other = (Perfil) object;
-        if ((this.perfilPK == null && other.perfilPK != null) || (this.perfilPK != null && !this.perfilPK.equals(other.perfilPK))) {
-            return false;
-        }
-        return true;
+        return java.util.Objects.equals(this.perfilPK, other.perfilPK);
     }
 
     @Override
     public String toString() {
-        return "com.RIS.MVC.model.JPA.entities.Perfil[ perfilPK=" + perfilPK + " ]";
+        return "Perfil{perfilPK=" + perfilPK + ", estado=" + estado + "}";
     }
     
 }
