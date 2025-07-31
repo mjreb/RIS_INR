@@ -15,11 +15,6 @@ public class SesionPK implements Serializable {
     @NotNull
     @Column(name = "horaInicio")
     private long horaInicio;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
-    @Column(name = "Usuario_ID")
-    private String usuarioID;
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "Usuario_CURP")
@@ -35,16 +30,9 @@ public class SesionPK implements Serializable {
     public SesionPK() {
     }
 
-    /*
-    public SesionPK(long horaInicio, String usuarioID) {
-        this.horaInicio = horaInicio;
-        this.usuarioID = usuarioID;
-    }
-  */
 
-    public SesionPK(long horaInicio, String usuarioID, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID) {
+    public SesionPK(long horaInicio, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID) {
         this.horaInicio = horaInicio;
-        this.usuarioID = usuarioID;
         this.usuarioNumEmpleado = usuarioNumEmpleado;
         this.usuarioCURP = usuarioCURP;
         this.aplicacionID = aplicacionID;
@@ -56,14 +44,6 @@ public class SesionPK implements Serializable {
 
     public void setHoraInicio(long horaInicio) {
         this.horaInicio = horaInicio;
-    }
-
-    public String getUsuarioID() {
-        return usuarioID;
-    }
-
-    public void setUsuarioID(String usuarioID) {
-        this.usuarioID = usuarioID;
     }
 
     public int getusuarioNumEmpleado() {
@@ -95,7 +75,7 @@ public class SesionPK implements Serializable {
     
     @Override
     public int hashCode() {
-        return Objects.hash(horaInicio, usuarioID, usuarioCURP, usuarioNumEmpleado, aplicacionID);
+        return Objects.hash(horaInicio, usuarioCURP, usuarioNumEmpleado, aplicacionID);
     }
 
     @Override
@@ -106,15 +86,13 @@ public class SesionPK implements Serializable {
         return horaInicio == other.horaInicio
             && usuarioNumEmpleado == other.usuarioNumEmpleado
             && aplicacionID == other.aplicacionID
-            && Objects.equals(usuarioID, other.usuarioID)
             && Objects.equals(usuarioCURP, other.usuarioCURP);
     }
 
     @Override
     public String toString() {
         return "SesionPK{horaInicio=" + horaInicio +
-               ", usuarioID='" + usuarioID + '\'' +
-               ", usuarioCURP='" + usuarioCURP + '\'' +
+              ", usuarioCURP='" + usuarioCURP + '\'' +
                ", usuarioNumEmpleado=" + usuarioNumEmpleado +
                ", aplicacionID=" + aplicacionID + '}';
     }

@@ -39,4 +39,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UsuarioPK> {
         WHERE u.UsuarioID = :usuarioId
         """, nativeQuery = true)
     List<UsuarioBasicoView> datosBasicos(@Param("usuarioId") String usuarioId);
+    
+    @Query("select u.usuarioID as usuarioId, u.nombre as nombre, u.apellidoPaterno as apellidoPaterno, " +
+       "u.apellidoMaterno as apellidoMaterno, u.areaidArea.idArea as areaId, " +
+       "u.usuarioPK.numEmpleado as numEmpleado, u.usuarioPK.curp as curp " +
+       "from Usuario u " +
+       "where u.usuarioID = :usuario")
+    List<UsuarioAuthView> buscarBasicoPorUsuario(@Param("usuario") String usuario);
 }

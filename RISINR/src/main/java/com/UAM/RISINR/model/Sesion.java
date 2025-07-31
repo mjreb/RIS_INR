@@ -44,8 +44,8 @@ public class Sesion implements Serializable {
         this.ipDispositivo = ipDispositivo;
     }
 
-    public Sesion(long horaInicio, String usuarioID, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID, String ipDispositivo) {
-        this.sesionPK = new SesionPK(horaInicio, usuarioID, usuarioNumEmpleado, usuarioCURP, aplicacionID);
+    public Sesion(long horaInicio, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID, String ipDispositivo) {
+        this.sesionPK = new SesionPK(horaInicio, usuarioNumEmpleado, usuarioCURP, aplicacionID);
         this.ipDispositivo=ipDispositivo;
     }
  
