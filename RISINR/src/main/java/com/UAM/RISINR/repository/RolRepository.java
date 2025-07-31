@@ -8,6 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RolRepository extends JpaRepository<Rol, Integer> {
 
-    // Método derivado que retorna PROYECCIÓN (no entidades completas)
     List<RolView> findByIdRolIn(Collection<Integer> ids);
 }
