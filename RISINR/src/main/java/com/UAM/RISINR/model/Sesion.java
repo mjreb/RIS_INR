@@ -28,6 +28,10 @@ public class Sesion implements Serializable {
     @Size(min = 1, max = 15)
     @Column(name = "IPDispositivo")
     private String ipDispositivo;
+    @NotNull
+    @Size(min = 1, max = 45)
+    @Column(name = "Usuario_ID")
+    private String usuarioID;
     @Size(max = 25)
     @Column(name = "TipoCierre")
     private String tipoCierre;
@@ -39,14 +43,16 @@ public class Sesion implements Serializable {
         this.sesionPK = sesionPK;
     }
 
-    public Sesion(SesionPK sesionPK, String ipDispositivo) {
+    public Sesion(SesionPK sesionPK, String ipDispositivo, String usuarioID) {
         this.sesionPK = sesionPK;
         this.ipDispositivo = ipDispositivo;
+        this.usuarioID = usuarioID;
     }
 
-    public Sesion(long horaInicio, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID, String ipDispositivo) {
+    public Sesion(long horaInicio, int usuarioNumEmpleado, String usuarioCURP, int aplicacionID, String ipDispositivo, String usuarioID) {
         this.sesionPK = new SesionPK(horaInicio, usuarioNumEmpleado, usuarioCURP, aplicacionID);
         this.ipDispositivo=ipDispositivo;
+        this.usuarioID = usuarioID;
     }
  
     public SesionPK getSesionPK() {
@@ -71,6 +77,14 @@ public class Sesion implements Serializable {
 
     public void setHoraFin(BigInteger horaFin) {
         this.horaFin = horaFin;
+    }
+
+    public String getUsuarioID() {
+        return usuarioID;
+    }
+
+    public void setUsuarioID(String usuarioID) {
+        this.usuarioID = usuarioID;
     }
 
     public String getIPDispositivo() {

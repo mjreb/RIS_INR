@@ -23,8 +23,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UsuarioPK> {
             u.CURP            AS curp,
             u.Estado          AS estado
         FROM Usuario u
-        WHERE u.UsuarioID = :usuarioId
-          AND u.Passwd    = :passwd
+        WHERE BINARY u.UsuarioID = :usuarioId
+          AND BINARY u.Passwd    = :passwd
+          AND u.Estado = 'activo'
         """, nativeQuery = true)
     List<UsuarioAuthView> autenticar(@Param("usuarioId") String usuarioId,
                                                                         @Param("passwd")    String passwd);
@@ -36,14 +37,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UsuarioPK> {
             u.NumEmpleado AS numEmpleado,
             u.CURP        AS curp
         FROM Usuario u
-        WHERE u.UsuarioID = :usuarioId
+        WHERE BINARY u.UsuarioID = :usuarioId
         """, nativeQuery = true)
     List<UsuarioBasicoView> datosBasicos(@Param("usuarioId") String usuarioId);
     
-    @Query("select u.usuarioID as usuarioId, u.nombre as nombre, u.apellidoPaterno as apellidoPaterno, " +
-       "u.apellidoMaterno as apellidoMaterno, u.areaidArea.idArea as areaId, " +
-       "u.usuarioPK.numEmpleado as numEmpleado, u.usuarioPK.curp as curp " +
+    @Query(value="select u.UsuarioID as usuarioId, u.Nombre as nombre, u.ApellidoPaterno as apellidoPaterno, " +
+       "u.ApellidoMaterno as apellidoMaterno, u.Area_idArea as areaId, " +
+       "u.NumEmpleado as numEmpleado, u.CURP as curp " +
        "from Usuario u " +
-       "where u.usuarioID = :usuario")
+       "where BINARY u.usuarioID = :usuario", nativeQuery=true)
     List<UsuarioAuthView> buscarBasicoPorUsuario(@Param("usuario") String usuario);
 }

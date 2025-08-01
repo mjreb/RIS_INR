@@ -1,8 +1,13 @@
 package com.UAM.RISINR.model.dto.access;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class LoginRequestDTO {
     
+    @JsonProperty("usuarioId")
     private String usuarioId;
+
+    @JsonProperty("passwd")
     private String passwd;
 
     public LoginRequestDTO() {
@@ -12,6 +17,9 @@ public class LoginRequestDTO {
         this.usuarioId = usuarioId;
         this.passwd = passwd;
     }
+
+    // ✔ Getters usan nombres lógicos internos,
+    //   pero Jackson ya sabe que en JSON se llaman usuarioId y passwd.
 
     public String getUsuario() {
         return usuarioId;

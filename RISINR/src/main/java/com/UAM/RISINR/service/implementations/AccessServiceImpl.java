@@ -67,6 +67,22 @@ public class AccessServiceImpl implements AccessService {
     public LoginResponseDTO login(LoginRequestDTO request, String ipDispositivo) {
         // 1) Autenticar (0/1/>1 por BD legacy sin unique en UsuarioID)
         var matches = usuarioRepo.autenticar(request.getUsuario(), request.getContrasena()); //  Regresa List con datos de usuarios con coincidencias en ID + Contraseñas
+        System.out.println("============================================");
+        System.out.println("DEBUG :: tamaño de matches = " + matches.size());
+        for (int i = 0; i < matches.size(); i++) {
+            var m = matches.get(i);
+            System.out.println("DEBUG :: fila " + (i + 1) + " -> "
+                + "usuarioId=" + m.getUsuarioId()
+                + ", nombre=" + m.getNombre()
+                + ", apellidoPaterno=" + m.getApellidoPaterno()
+                + ", apellidoMaterno=" + m.getApellidoMaterno()
+                + ", areaId=" + m.getAreaId()
+                + ", numEmpleado=" + m.getNumEmpleado()
+                + ", curp=" + m.getCurp()
+                + ", estado=" + m.getEstado());
+        }
+        System.out.println("============================================");
+
         if (matches.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
         }
@@ -86,7 +102,7 @@ public class AccessServiceImpl implements AccessService {
 
         // 3) Área
         Integer areaId = auth.getAreaId();
-        if (areaId != null) {
+        if (areaId == null) {
         // Datos inconsistentes: el usuario no tiene área asignada
         throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no tiene área asignada.");
         }
@@ -132,7 +148,7 @@ public class AccessServiceImpl implements AccessService {
                     auth.getCurp(),
                     APLICACION_ID
             );
-            var sesion = new Sesion(spk, ip15);
+            var sesion = new Sesion(spk, ip15, auth.getUsuarioId());
             sesion.setRolNombre(unico.getNombre());
             sesionRepo.save(sesion);
 
@@ -210,7 +226,7 @@ public class AccessServiceImpl implements AccessService {
                 APLICACION_ID
         );
 
-        Sesion sesion = new Sesion(spk, ip15);
+        Sesion sesion = new Sesion(spk, ip15, auth.getUsuarioId());
         sesion.setRolNombre(rolElegido.getNombre());
         sesionRepo.save(sesion);
 
