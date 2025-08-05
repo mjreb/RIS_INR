@@ -319,15 +319,39 @@ function regresar() {
 }
 
 function salir() {
-    //INVALIDAR SESION
-    $.ajax({
-        url: uriserv + '/logout',
-        type: 'GET', // Tipo de envio 
-        dataType: 'json', //Tipo de Respuesta
-        error: function (err) {
-            window.location = host + 'login.html';
-        }
-    });
+  var token = sessionStorage.getItem('token');
+  var tc ='Natural';
+
+  $.ajax({
+    url: '/RISSERVER/access/logout?tipoCierre=' + encodeURIComponent(tc),
+    type: 'POST',
+    beforeSend: function (xhr) {
+      if (token) {
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      }
+    },
+    // No necesitamos dataType aquí; el endpoint devuelve 204/200 sin body
+    success: function () {
+      // ok
+    },
+    statusCode: {
+      401: function () {
+        // Token inválido/ausente; igual limpiamos y regresamos a login
+        console.warn('Logout 401: token inválido o ausente');
+      },
+      404: function () {
+        console.warn('Logout 404: sesión no encontrada');
+      }
+    },
+    error: function (xhr) {
+      console.error('Error en logout', xhr.status);
+    },
+    complete: function () {
+      // Limpia y vuelve al login pase lo que pase
+      sessionStorage.removeItem('token');
+      window.location = host + 'login.html';
+    }
+  });
 }
 
 function getsession() {

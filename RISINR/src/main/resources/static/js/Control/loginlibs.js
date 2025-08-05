@@ -1,19 +1,16 @@
 //http://localhost:8080/RESTSERVER/rest/USRSesionRST/login
+window._loginCache = null;
 var host = "http://" + location.host+"/RISSERVER/";
 var FSM2;
 
 function agregarPreloader(servicio) {
     $('#loader' + servicio).show();
     $('#fade' + servicio).show();
-    //document.getElementById('loader'+servicio).style.display = 'block';
-    //document.getElementById('fade'+servicio).style.display = 'block';
 }
 
 function removerPreloader(servicio) {
     $('#loader' + servicio).hide();
     $('#fade' + servicio).hide();
-    //document.getElementById('loader'+servicio).style.display = 'none';
-    //document.getElementById('fade'+servicio).style.display = 'none';
 } 
 //mover a clase de vista general (paquete vista)
 function nobackbutton() {
@@ -38,41 +35,87 @@ function getServicio(uriServ,tipohttp) {
     });
 }  
 
-//vista particular
-function activamodal(str, form) {
-    switch (str) {
-        case "Cancelar":
-            document.getElementById("formulario").reset(); //limpiar forma de login
-            var dialogomodal = document.querySelector(".modal"+form.id);
-            dialogomodal.style.display = "none";
-            $.ajax({
-                url: '/RISSERVER/rest/USRSesionRST/logout',
-                type: 'GET', // Tipo de envio 
-                dataType: 'json', //Tipo de Respuesta
-                error: function (err) {
-                    window.location = host + 'login.html';
-                }
-            });
-            break;
-         case "Ingresar": 
-            var rolselected=getSelectedIndex(document.getElementById("perf2"));
-            //console.log(rolselected);
-            if(rolselected!=="0"){
-                //Ejecutar carga de FSM de acuerdo al perfil y redireccionar pagina
-                var llamadaFSM=getServicio("/RISSERVER/rest/RISFSM/fsm2/"+rolselected,"GET");
-                $.when(llamadaFSM.done(function (ajaxFSMResults) {                                
-                    console.log(ajaxFSMResults); 
-                    FSM2= new  FSM(ajaxFSMResults);//creación de objeto FSMcon el json proveniente del back end
-                    //edokparticular=FSM2.getFSMStateById("INGRESAR");
-                    var edokparticular=FSM2.getFSMStateById(str.toUpperCase()); //en mayusculas: "nextState": "INGRESAR"
-                    //concatenar: ""perfiles/"+rolselected+"/"+edokparticular.estado[0].vista
-                    window.location = host +"vistas/perfiles/"+rolselected+"/"+edokparticular.estado[0].vista; //redireccionar a pagina de perfil particular
-                }));                             
-                var dialogomodal = document.querySelector(".modal"+form.id);
-                dialogomodal.style.display = "none";                          
-            }
-            break;
-    }    
+//MISAAAA
+function onModalIngresarClick(e) {
+  e.preventDefault();
+
+  var rolNombre = $('#perf2').val();
+  if (!rolNombre || rolNombre === '0') {
+    alert('Selecciona un rol');
+    return;
+  }
+  if (!window._loginCache || !window._loginCache.usuarioId || !Array.isArray(window._loginCache.roles)) {
+    alert('No hay datos de login en memoria. Intenta iniciar sesión de nuevo.');
+    return;
+  }
+
+  // Buscar idRol por nombre
+  var elegido = window._loginCache.roles.find(function (r) { return r && r.nombre === rolNombre; });
+  if (!elegido) {
+    alert('Rol inválido');
+    return;
+  }
+
+  agregarPreloader('login');
+
+  $.ajax({
+    url: '/RISSERVER/access/seleccionar-rol',
+    type: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({
+      usuarioId: window._loginCache.usuarioId,
+      idRol: elegido.idRol
+    }),
+    success: function (data) {
+      // Guardar token
+      if (data && data.tokenJWT) {
+        sessionStorage.setItem('token', data.tokenJWT);
+      } else {
+        alert('No se recibió token al seleccionar rol.');
+        return;
+      }
+
+      // Cerrar modal
+      $('.modalUSUARIOS').hide();
+
+      // Cargar FSM del rol elegido y redirigir
+      var llamadaFSM = getServicio("/RISSERVER/rest/RISFSM/fsm2/" + encodeURIComponent(rolNombre), "GET");
+      $.when(llamadaFSM.done(function (ajaxFSMResults) {
+        FSM2 = new FSM(ajaxFSMResults);
+        var estado = FSM2.getFSMStateById('INGRESAR'); // ajusta si tu estado inicial es otro
+        if (!estado || !estado.estado || !estado.estado.length) {
+          alert('FSM sin estado de entrada válido.');
+          return;
+        }
+        var vista = estado.estado[0].vista;
+        var host = "http://" + location.host + "/RISSERVER/";
+        window.location = host + "vistas/perfiles/" + encodeURIComponent(rolNombre) + "/" + vista;
+      })).fail(function () {
+        alert("No se pudo cargar la FSM del rol");
+      });
+    },
+    statusCode: {
+      403: function () { alert('El usuario no tiene ese rol'); },
+      409: function () { alert('Conflicto al seleccionar rol'); }
+    },
+    error: function (xhr) {
+      console.error('Error seleccionar-rol', xhr);
+      alert('Error al seleccionar rol (' + xhr.status + ').');
+    },
+    complete: function () {
+      removerPreloader('login');
+    }
+  });
+}
+
+//MISAA
+function onModalCancelarClick(e) {
+  e.preventDefault();
+  $('.modalUSUARIOS').hide();
+  $('#formulario')[0].reset();
+  // Si quieres forzar regresar a login limpio:
+  // window.location = "http://" + location.host + "/RISSERVER/login.html";
 }
 
 //funcion para insertar opciones de selección en un listbox
@@ -98,184 +141,86 @@ function getSelectedIndex(refselid) {
 }
 
 //metodo para controlar la opción de ingreso al sistema (boton Ingresar)
-function logIn(estado,e){
-    agregarPreloader("login");
-    var mesnajeinicial=e.target.value;
-        //console.log("valor evento: "+e.target.value);
-        //edok=FSM2.getFSMStateById("login");
-        var edok=FSM2.getFSMStateById(estado);
-        //var mensajek=FSM2.getFSMStateMessageById(edok, "Ingresar");
-        var mensajek=FSM2.getFSMStateMessageById(edok, mesnajeinicial);
-        var restservice=mensajek.accion;
-        //console.log(edok.estado[0].vista);
-     //"Carlos", "abc123"
-     //"MARCO", "123"
-        var username = $('#uname').val();
-        var password = $('#psw').val();
-        ////////Bloque para integrar la funcionalidad de JSON Web Token//////////
-        var rsaKeyPair = KEYUTIL.generateKeypair("RSA", 2048);// Se crean el par de llaves
-        var privateKey = KEYUTIL.getPEM(rsaKeyPair.prvKeyObj,"PKCS8PRV");// Se obtiene la llave privada
-        var publicKey = KEYUTIL.getPEM(rsaKeyPair.pubKeyObj);//Se obtiene la llave pública
-        console.log(publicKey);
-        var header ={ alg: "RS256", typ: "JWT"};// Se declara la cabecera del JWT 
-        var base64 = btoa(username + ":" + password); // Se codifica en base 64 el usuario y la contraseña
-        //var payload = {"usuario":username,"contrasena":password};
-        var payload = {"base64":base64}; 
-        var JSONToken = KJUR.jws.JWS.sign("RS256", JSON.stringify(header), JSON.stringify(payload), privateKey);// Se crea el JWT
-        console.log(JSONToken);
-        var informacionJSON = {"token":JSONToken, "llavepublica":publicKey};
-        
-        //var enviardatosbackend = {"usuario":username, "contrasena":password};
-        //Función ajax para mandar el JWT y la llave privada al Backend
-        $.ajax({
-            url: '/RISSERVER/rest/USRSesionRST/servicioseguridad',  // URL del servicio
-            type: 'POST',  // Método POST
-            contentType: 'application/x-www-form-urlencoded', 
-            dataType: 'text',  // Indicamos que esperamos recibir JSON
-            data: informacionJSON,  // Convertimos el objeto a JSON
-        beforeSend: function () {
-            console.log('Enviando datos...');
-        },
-        success: function (response) {
-            console.log('Respuesta del servidor:', response);
-            
-            $.ajax({
-            url: '/RISSERVER/rest/USRSesionRST/login',
-            type: 'GET', // Tipo de servicio 
-            dataType: 'json', //Tipo de datos
-            beforeSend: function () {
-                agregarPreloader("login"); // ACTIVAR INDICADOR DE ESPERA
-            }
-            }).done(function (data, textStatus, jqXHR) {
-                //Si en java se cifra, es necesario descifrarlo.
-                var datosjson = data; // Se guarda la información en la variable datosjson
-                var keypub = datosjson["llavepublica"];// Se obtiene la llave pública del objeto JSON
-                console.log(datosjson["JWT"]);
-                //console.log(datosjson["llavepublica"]);
-                
-                var isValid = KJUR.jws.JWS.verifyJWT(datosjson["JWT"], keypub, { alg: ['RS256'] });
-                
-                if (isValid) {
-                  console.log('El token es válido.');
-                  // Analizar el JWT para obtener los claims
-                  var parsed = KJUR.jws.JWS.parse(datosjson["JWT"]);
-                  var payload = parsed.payloadObj; // Se obtiene la carga útil del JWT
-                  var subject = payload.sub;
-                  var access_data = JSON.parse(subject);
-                  console.log(access_data);
-                  var usuario=access_data.Nombre+" "+access_data.Apaterno+" "+access_data.Amaterno; //nombre del usuario
-                  var arregloPeril=JSON.parse(access_data.perfil); //arreglo de perfiles
-                  //console.log(arregloPeril.length);
-                  //alert(arregloPeril);
-                  var fsmparticular=arregloPeril[0]; //seleccioando el elemento 0 del perfil OJO hacer un dialogo para preguntar perfil de ingreso
-                  console.log(fsmparticular);
-                  if(arregloPeril.length>1){
-                    UpdateListBox("perf2",arregloPeril);
-                    var dialogoMODAL = document.querySelector(".modalUSUARIOS");
-                    dialogoMODAL.style.display = "block";//activar dialogo modal   
-                    document.getElementById("usuarioactivo").innerHTML = "Bienvenido: "+usuario; //NOMBRE DEL USUARIO QUE DESEA INGRESAR
-                  }else{
-                    var llamadaFSM=getServicio("/RISSERVER/rest/RISFSM/fsm2/"+fsmparticular,"GET");
-                    $.when(llamadaFSM.done(function (ajaxFSMResults) {
-                        //console.log(ajaxFSMResults); 
-                        //edokparticular=FSM2.getFSMStateById("INGRESAR");
-                        FSM2= new  FSM(ajaxFSMResults);//creación de objeto FSM con el json proveniente del back end
-                        var edokparticular=FSM2.getFSMStateById(mesnajeinicial.toUpperCase()); //en mayusculas: "nextState": "INGRESAR"
-                        //concatenar: "perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista
-                        window.location = host + "vistas/perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista; //redireccionar a pagina de perfil particular
-                    }));                                 
-                  }
-                  
-                } 
-                /*
-                var access_data=JSON.parse(data);
-                console.log(access_data);
-                var usuario=access_data.Nombre+" "+access_data.Apaterno+" "+access_data.Amaterno; //nombre del usuario
-                var arregloPeril=JSON.parse(access_data.perfil); //arreglo de perfiles
-                //console.log(arregloPeril.length);
-                //alert(arregloPeril);
-                var fsmparticular=arregloPeril[0]; //seleccioando el elemento 0 del perfil OJO hacer un dialogo para preguntar perfil de ingreso
-                console.log(fsmparticular);  
-                if(arregloPeril.length>1){
-                    UpdateListBox("perf2",arregloPeril);
-                    var dialogoMODAL = document.querySelector(".modalUSUARIOS");
-                    dialogoMODAL.style.display = "block";//activar dialogo modal   
-                    document.getElementById("usuarioactivo").innerHTML = "Bienvenido: "+usuario; //NOMBRE DEL USUARIO QUE DESEA INGRESAR
-                }else{
-                    var llamadaFSM=getServicio("/RISSERVER/rest/RISFSM/fsm2/"+fsmparticular,"GET");
-                    $.when(llamadaFSM.done(function (ajaxFSMResults) {
-                        //console.log(ajaxFSMResults); 
-                        //edokparticular=FSM2.getFSMStateById("INGRESAR");
-                        FSM2= new  FSM(ajaxFSMResults);//creación de objeto FSM con el json proveniente del back end
-                        var edokparticular=FSM2.getFSMStateById(mesnajeinicial.toUpperCase()); //en mayusculas: "nextState": "INGRESAR"
-                        //concatenar: "perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista
-                        window.location = host + "vistas/perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista; //redireccionar a pagina de perfil particular
-                    }));                                 
-                }
-                */
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                alert(textStatus+': Usuario invalido ');                        
-            }).always(function (jqXHROrData, textStatus, jqXHROrErrorThrown) {
-                removerPreloader("login"); // REMOVER INDICADOR DE ESPERA
-                document.getElementById("formulario").reset(); //limpiar campos de la forma                            
-            });
-            
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            console.log('Error:', textStatus, errorThrown);
-        }
+function logIn(estado, e) {
+  if (e && e.preventDefault) e.preventDefault();
+  agregarPreloader("login");
+
+  var usuarioId = $('#uname').val().trim();
+  var passwd    = $('#psw').val(); // no hagas trim a passwd
+
+  if (!usuarioId || !passwd) {
+    removerPreloader("login");
+    alert("Ingresa usuario y contraseña");
+    return;
+  }
+
+  $.ajax({
+    url: '/RISSERVER/access/login',
+    type: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({ usuarioId: usuarioId, passwd: passwd }),
+    success: function (data) {
+      // data es tu LoginResponseDTO
+      if (data.requiereSeleccionRol) {
+        // MULTI-ROL: llenar el <select id="perf2"> con los NOMBRES de rol
+        var $select = $('#perf2');
+        $select.find('option:not([value="0"])').remove(); // conserva placeholder
+        (data.roles || []).forEach(function (r) {
+          $('<option>').val(r.nombre).text(r.nombre).appendTo($select);
         });
-        
-        
-        //console.log(username);
-        //console.log(password);
-        
-        /*
-        $.ajax({
-            url: '/RISSERVER/rest/USRSesionRST/login',
-            type: 'GET', // Tipo de servicio 
-            dataType: 'html', //Tipo de datos
-            headers : {
-              'Authorization': "Basic " + btoa(username + ":" + password)
-              
-              
-            },
-            beforeSend: function () {
-                agregarPreloader("login"); // ACTIVAR INDICADOR DE ESPERA
-            }
-        }).done(function (data, textStatus, jqXHR) {
-                //Si en java se cifra, es necesario descifrarlo.
-                var access_data=JSON.parse(data);
-                console.log(access_data);
-                var usuario=access_data.Nombre+" "+access_data.Apaterno+" "+access_data.Amaterno; //nombre del usuario
-                var arregloPeril=JSON.parse(access_data.perfil); //arreglo de perfiles
-                //console.log(arregloPeril.length);
-                //alert(arregloPeril);
-                var fsmparticular=arregloPeril[0]; //seleccioando el elemento 0 del perfil OJO hacer un dialogo para preguntar perfil de ingreso
-                console.log(fsmparticular);  
-                if(arregloPeril.length>1){
-                    UpdateListBox("perf2",arregloPeril);
-                    var dialogoMODAL = document.querySelector(".modalUSUARIOS");
-                    dialogoMODAL.style.display = "block";//activar dialogo modal   
-                    document.getElementById("usuarioactivo").innerHTML = "Bienvenido: "+usuario; //NOMBRE DEL USUARIO QUE DESEA INGRESAR
-                }else{
-                    var llamadaFSM=getServicio("/RISSERVER/rest/RISFSM/fsm2/"+fsmparticular,"GET");
-                    $.when(llamadaFSM.done(function (ajaxFSMResults) {
-                        //console.log(ajaxFSMResults); 
-                        //edokparticular=FSM2.getFSMStateById("INGRESAR");
-                        FSM2= new  FSM(ajaxFSMResults);//creación de objeto FSM con el json proveniente del back end
-                        var edokparticular=FSM2.getFSMStateById(mesnajeinicial.toUpperCase()); //en mayusculas: "nextState": "INGRESAR"
-                        //concatenar: "perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista
-                        window.location = host + "vistas/perfiles/"+fsmparticular+"/"+edokparticular.estado[0].vista; //redireccionar a pagina de perfil particular
-                    }));                                 
-                }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-                alert(textStatus+': Usuario invalido ');                        
-        }).always(function (jqXHROrData, textStatus, jqXHROrErrorThrown) {
-                removerPreloader("login"); // REMOVER INDICADOR DE ESPERA
-                document.getElementById("formulario").reset(); //limpiar campos de la forma                            
-        });  
-        */
+
+        // Saludo
+        var u = data.usuario;
+        $('#usuarioactivo').text('Bienvenido: ' + u.nombre + ' ' + u.apellidoPaterno + ' ' + u.apellidoMaterno);
+
+        // Guardar para /seleccionar-rol
+        window._loginCache = {
+          usuarioId: usuarioId,
+          roles: data.roles // [{idRol, nombre, descripcion}, ...]
+        };
+
+        // Mostrar modal
+        $('.modalUSUARIOS').show();
+
+      } else {
+        // ROL ÚNICO: ya viene token
+        if (data.token) {
+          sessionStorage.setItem('token', data.token);
+        }
+
+        // Cargar FSM del rol elegido automáticamente (el único en data.roles[0])
+        var rolUnico = (data.roles && data.roles.length) ? data.roles[0].nombre : null;
+        if (rolUnico) {
+          var llamadaFSM = getServicio("/RISSERVER/rest/RISFSM/fsm2/" + encodeURIComponent(rolUnico), "GET");
+          $.when(llamadaFSM.done(function (ajaxFSMResults) {
+            FSM2 = new FSM(ajaxFSMResults);
+            var edokparticular = FSM2.getFSMStateById('INGRESAR'); // ajusta si tu estado inicial tiene otro id
+            var vista = edokparticular.estado[0].vista;
+            // redirección a la vista para ese rol
+            window.location = "http://" + location.host + "/RISSERVER/vistas/perfiles/" + encodeURIComponent(rolUnico) + "/" + vista;
+          })).fail(function () {
+            alert("No se pudo cargar la FSM del rol");
+          });
+        } else {
+          alert("Login exitoso, pero no se recibió el rol. Verifica la respuesta del backend.");
+        }
+      }
+    },
+    statusCode: {
+      401: function () { alert('Credenciales inválidas'); },
+      403: function () { alert('Acceso denegado: usuario sin roles'); },
+      409: function () { alert('Conflicto: usuario duplicado o sin área'); }
+    },
+    error: function (xhr) {
+      console.error('Error login', xhr);
+      alert('Error al autenticar (' + xhr.status + ').');
+    },
+    complete: function () {
+      removerPreloader("login");
+      $('#formulario')[0].reset();
+    }
+  });
 }
 
 $(document).ready(function () {
@@ -286,3 +231,29 @@ $(document).ready(function () {
     })); 
 });
 
+
+
+
+//MISA
+// Evita handlers duplicados si el archivo se carga más de una vez
+$(document).off('click', '#btnLogin');
+$(document).off('click', '#guardarUSUARIOS');
+$(document).off('click', '#cancelarUSUARIOS');
+
+// Click en botón "Ingresar"
+$(document).on('click', '#btnLogin', function (e) {
+  e.preventDefault();
+  // Llama a tu función existente de login
+  logIn('login', e);
+});
+
+// (Opcional) Permitir Enter en el formulario para disparar el mismo flujo
+$(document).off('submit', '#formulario');
+$(document).on('submit', '#formulario', function (e) {
+  e.preventDefault();
+  logIn('login', e);
+});
+
+//Clicks en botones del modal
+$(document).on('click', '#guardarUSUARIOS', onModalIngresarClick);
+$(document).on('click', '#cancelarUSUARIOS', onModalCancelarClick);

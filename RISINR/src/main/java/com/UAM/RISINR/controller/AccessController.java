@@ -55,18 +55,16 @@ public class AccessController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204
     }
 
-    // ---------- Helpers ----------
     /** Extrae la primera IP válida (X-Forwarded-For o remoteAddr) y la acorta a 15 chars. */
     private String extraerIp(HttpServletRequest req) {
         String ip = req.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isBlank()) {
-            ip = req.getHeader("X-Real-IP");
+        if (ip != null && !ip.isBlank()) {
+            int coma = ip.indexOf(',');
+            return (coma > 0 ? ip.substring(0, coma) : ip).trim(); // sin truncar
         }
-        if (ip == null || ip.isBlank()) {
-            ip = req.getRemoteAddr();
-        }
-        // IPv4 en tu esquema (VARCHAR(15))
-        return (ip != null && ip.length() > 15) ? ip.substring(0, 15) : ip;
+        ip = req.getHeader("X-Real-IP");
+        if (ip != null && !ip.isBlank()) return ip.trim();
+        return req.getRemoteAddr();
     }
 
     /** Obtiene el token de 'Authorization: Bearer <token>'. */
