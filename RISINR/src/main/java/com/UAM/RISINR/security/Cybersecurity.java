@@ -49,7 +49,7 @@ public class Cybersecurity {
         String token = Jwts.builder()
                 .setIssuer("Marco Antonio Velasco")
                 .setSubject(Datos)
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hora
+                .setExpiration(new Date(System.currentTimeMillis() + 30000)) // 5 minutos
                 .signWith(privateKey, SignatureAlgorithm.RS256) // Firmar con la clave privada
                 .compact();  
         return token;

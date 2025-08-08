@@ -71,6 +71,11 @@ function onModalIngresarClick(e) {
       // Guardar token
       if (data && data.tokenJWT) {
         sessionStorage.setItem('token', data.tokenJWT);
+        // 2) NUEVO: guardar en cookie legible por el navegador
+        document.cookie =
+          'token=' + data.tokenJWT +            // nombre=valor
+          '; Path=/' +                       // visible para toda la app
+          '; SameSite=Lax';                  // evita envío en peticiones cross-site
       } else {
         alert('No se recibió token al seleccionar rol.');
         return;
@@ -80,7 +85,7 @@ function onModalIngresarClick(e) {
       $('.modalUSUARIOS').hide();
 
       // Cargar FSM del rol elegido y redirigir
-      var llamadaFSM = getServicio("/RISSERVER/rest/RISFSM/fsm2/" + encodeURIComponent(rolNombre), "GET");
+      var llamadaFSM = getServicio("/RISSERVER/RISFSM/fsm2/" + encodeURIComponent(rolNombre), "GET");
       $.when(llamadaFSM.done(function (ajaxFSMResults) {
         FSM2 = new FSM(ajaxFSMResults);
         var estado = FSM2.getFSMStateById('INGRESAR'); // ajusta si tu estado inicial es otro
@@ -185,14 +190,19 @@ function logIn(estado, e) {
 
       } else {
         // ROL ÚNICO: ya viene token
-        if (data.token) {
-          sessionStorage.setItem('token', data.token);
+        if (data.tokenJWT) {
+          sessionStorage.setItem('token', data.tokenJWT);
+          // 2) NUEVO: guardar en cookie legible por el navegador
+          document.cookie =
+            'token=' + data.tokenJWT +            // nombre=valor
+            '; Path=/' +                       // visible para toda la app
+            '; SameSite=Lax';                  // evita envío en peticiones cross-site
         }
 
         // Cargar FSM del rol elegido automáticamente (el único en data.roles[0])
         var rolUnico = (data.roles && data.roles.length) ? data.roles[0].nombre : null;
         if (rolUnico) {
-          var llamadaFSM = getServicio("/RISSERVER/rest/RISFSM/fsm2/" + encodeURIComponent(rolUnico), "GET");
+          var llamadaFSM = getServicio("/RISSERVER/RISFSM/fsm2/" + encodeURIComponent(rolUnico), "GET");
           $.when(llamadaFSM.done(function (ajaxFSMResults) {
             FSM2 = new FSM(ajaxFSMResults);
             var edokparticular = FSM2.getFSMStateById('INGRESAR'); // ajusta si tu estado inicial tiene otro id
@@ -224,7 +234,7 @@ function logIn(estado, e) {
 }
 
 $(document).ready(function () {
-    var llamadaFSM=getServicio("/RISSERVER/rest/RISFSM/fsm2/General","GET");// cargar FSM general..
+    var llamadaFSM=getServicio("/RISSERVER/RISFSM/fsm2/General","GET");// cargar FSM general..
     $.when(llamadaFSM.done(function (ajaxFSMResults) {
         FSM2= new  FSM(ajaxFSMResults);//creación de objeto FSM con el json proveniente del back-end
         //console.log(FSM2);

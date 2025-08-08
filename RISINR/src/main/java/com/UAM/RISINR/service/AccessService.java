@@ -21,4 +21,6 @@ public interface AccessService {
      * Cierra la sesión asociada al token: registra horaFin y tipoCierre.
      */
     void logout(String tokenJWT, String tipoCierre);
+    
+    void logoutDesdeSubject(String subjectJson, String tipoCierre);
 }

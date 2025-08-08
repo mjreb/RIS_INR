@@ -7,7 +7,9 @@ import com.UAM.RISINR.service.AccessService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -47,12 +49,18 @@ public class AccessController {
 
     // ---------- LOGOUT ----------
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
-                                       @RequestParam("tipoCierre") String tipoCierre) {
+    public ResponseEntity<Void> logout(@RequestParam("tipoCierre") String tipoCierre) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String subjectJson = (String) auth.getPrincipal();
+        accessService.logoutDesdeSubject(subjectJson, tipoCierre);
 
-        String token = extraerToken(authHeader);
-        accessService.logout(token, tipoCierre);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204
+        ResponseCookie delete = ResponseCookie.from("token","").maxAge(0).path("/").sameSite("Lax").build();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, delete.toString())
+                .build();
     }
 
     /** Extrae la primera IP válida (X-Forwarded-For o remoteAddr) y la acorta a 15 chars. */

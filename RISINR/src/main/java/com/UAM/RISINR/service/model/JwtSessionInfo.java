@@ -1,13 +1,20 @@
 package com.UAM.RISINR.service.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JwtSessionInfo {
 
     private final int numEmpleado;     // nme
     private final String curp;         // curp
     private final long horaInicio;     // hst (epoch millis)
     private final int aplicacionId;    // asi
-    
-    public JwtSessionInfo(int numEmpleado, String curp, long horaInicio, int aplicacionId) {
+
+    @JsonCreator
+    public JwtSessionInfo(@JsonProperty("nme") int numEmpleado,
+                          @JsonProperty("curp") String curp,
+                          @JsonProperty("hst") long horaInicio,
+                          @JsonProperty("asi") int aplicacionId) {
         this.numEmpleado = numEmpleado;
         this.curp = curp;
         this.horaInicio = horaInicio;

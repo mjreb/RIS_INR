@@ -18,6 +18,9 @@ import com.UAM.RISINR.repository.projection.RolView;
 import com.UAM.RISINR.repository.projection.UsuarioAuthView;
 import com.UAM.RISINR.service.AccessService;
 import com.UAM.RISINR.service.JwtService;
+import com.UAM.RISINR.service.model.JwtSessionInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,7 @@ public class AccessServiceImpl implements AccessService {
     private final AreaDeServicioRepository areaRepo;
     private final SesionRepository sesionRepo;
     private final JwtService jwtService;
+    private final ObjectMapper objectMapper;
 
     // AplicacionID fijo en 1
     private static final int APLICACION_ID = 1;
@@ -47,13 +51,15 @@ public class AccessServiceImpl implements AccessService {
                              RolRepository rolRepo,
                              AreaDeServicioRepository areaRepo,
                              SesionRepository sesionRepo,
-                             JwtService jwtService) {
+                             JwtService jwtService,
+                             ObjectMapper objectMapper) {
         this.usuarioRepo = usuarioRepo;
         this.perfilRepo = perfilRepo;
         this.rolRepo = rolRepo;
         this.areaRepo = areaRepo;
         this.sesionRepo = sesionRepo;
         this.jwtService = jwtService;
+        this.objectMapper = objectMapper;
     }
 
     /** LOGIN:
@@ -280,6 +286,40 @@ public class AccessServiceImpl implements AccessService {
         sesionRepo.save(sesion);
     }
 
+    
+    
+    @Override
+    @Transactional
+    public void logoutDesdeSubject(String subjectJson, String tipoCierre) {
+        try {
+            // subjectJson tiene { nme, curp, hst, asi } tal como lo emites en JwtService
+            JwtSessionInfo info = objectMapper.readValue(subjectJson, JwtSessionInfo.class);
+
+            // Construir la PK EXACTA que insertaste al hacer login
+            SesionPK pk = new SesionPK(
+                    info.getHoraInicio(),
+                    info.getNumEmpleado(),
+                    info.getCurp(),
+                    info.getAplicacionId()
+            );
+
+            var sesionOpt = sesionRepo.findById(pk);
+            if (sesionOpt.isEmpty()) {
+                return;
+            }
+
+            var sesion = sesionOpt.get();
+            sesion.setHoraFin(BigInteger.valueOf(System.currentTimeMillis()));
+            sesion.setTipoCierre(tipoCierre);
+            sesionRepo.save(sesion);
+
+        } catch (Exception e) {
+            // Si el subject no se puede parsear, no podemos cerrar sesión
+            // Loguea el error si lo necesitas.
+        }
+    }
+    
+    
     private String normalizarIp(String ip) {
         if (ip == null) return null;
         // Columna VARCHAR(15) → IPv4

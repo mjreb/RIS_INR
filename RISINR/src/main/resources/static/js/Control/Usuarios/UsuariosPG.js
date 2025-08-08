@@ -319,35 +319,26 @@ function regresar() {
 }
 
 function salir() {
-  var token = sessionStorage.getItem('token');
-  var tc ='Natural';
+  var tc = 'Natural';
 
   $.ajax({
     url: '/RISSERVER/access/logout?tipoCierre=' + encodeURIComponent(tc),
     type: 'POST',
-    beforeSend: function (xhr) {
-      if (token) {
-        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-      }
-    },
-    // No necesitamos dataType aquí; el endpoint devuelve 204/200 sin body
+    xhrFields: { withCredentials: true }, // enviará la cookie 'token'
+    // No body ni headers necesarios
     success: function () {
-      // ok
+      // ok, el backend marcó horaFin/tipoCierre y borró cookie
     },
     statusCode: {
-      401: function () {
-        // Token inválido/ausente; igual limpiamos y regresamos a login
-        console.warn('Logout 401: token inválido o ausente');
-      },
-      404: function () {
-        console.warn('Logout 404: sesión no encontrada');
-      }
+      401: function () { console.warn('Logout 401: no autenticado'); },
+      404: function () { console.warn('Logout 404: sesión no encontrada'); }
     },
     error: function (xhr) {
       console.error('Error en logout', xhr.status);
     },
     complete: function () {
-      // Limpia y vuelve al login pase lo que pase
+      // Limpieza del lado cliente, pase lo que pase
+      document.cookie = 'token=; Max-Age=0; Path=/; SameSite=Lax';
       sessionStorage.removeItem('token');
       window.location = host + 'login.html';
     }
