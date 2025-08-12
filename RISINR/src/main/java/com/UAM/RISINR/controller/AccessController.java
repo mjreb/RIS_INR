@@ -3,7 +3,7 @@ package com.UAM.RISINR.controller;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
-import com.UAM.RISINR.service.AccessService;
+import com.UAM.RISINR.service.access.AccessService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,7 @@ public class AccessController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String subjectJson = (String) auth.getPrincipal();
-        accessService.logoutDesdeSubject(subjectJson, tipoCierre);
+        accessService.logout(subjectJson, tipoCierre);
 
         ResponseCookie delete = ResponseCookie.from("token","").maxAge(0).path("/").sameSite("Lax").build();
         return ResponseEntity.noContent()
@@ -73,13 +73,5 @@ public class AccessController {
         ip = req.getHeader("X-Real-IP");
         if (ip != null && !ip.isBlank()) return ip.trim();
         return req.getRemoteAddr();
-    }
-
-    /** Obtiene el token de 'Authorization: Bearer <token>'. */
-    private String extraerToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Header Authorization inválido o faltante");
-        }
-        return authHeader.substring("Bearer ".length());
     }
 }

@@ -1,7 +1,7 @@
 package com.UAM.RISINR.service.implementations;
 
 import com.UAM.RISINR.security.Cybersecurity;
-import com.UAM.RISINR.service.JwtService;
+import com.UAM.RISINR.service.shared.JwtService;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

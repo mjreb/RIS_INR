@@ -1,7 +1,7 @@
 package com.UAM.RISINR.security.jwt;
 
 import com.UAM.RISINR.security.Cybersecurity;
-import com.UAM.RISINR.service.AccessService;
+import com.UAM.RISINR.service.access.AccessService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -24,6 +24,7 @@ import org.springframework.http.ResponseCookie;
  * - Si encuentra "Authorization: Bearer "token" " intenta validar la firma y la expiración.
  * - Si es válido, coloca un Authentication en el SecurityContext.
  * - Si es inválido o no existe, deja la cadena sin autenticar; las reglas de Security decidirán (401).
+ *  Es un filtro de Spring que corre una vez por request. Aquí ocurren la extracción y el parseo/validación del JWT antes de entrar a tus controladores.
  */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -98,7 +99,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 4) TOKEN EXPIRADO -> cerrar sesión por inactividad y borrar cookie
                 try {
                     String subjectJson = eje.getClaims().getSubject(); // sujeto original
-                    accessService.logoutDesdeSubject(subjectJson, "Inactividad");
+                    accessService.logout(subjectJson, "Inactividad");
                 } catch (Exception e2) {
                     log.debug("No se pudo cerrar sesión por inactividad: {}", e2.getMessage());
                 }

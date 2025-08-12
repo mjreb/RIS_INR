@@ -319,7 +319,7 @@ function regresar() {
 }
 
 function salir() {
-  var tc = 'Natural';
+  var tc = 'Normal';
 
   $.ajax({
     url: '/RISSERVER/access/logout?tipoCierre=' + encodeURIComponent(tc),

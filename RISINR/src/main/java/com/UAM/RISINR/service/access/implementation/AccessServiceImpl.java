@@ -1,23 +1,22 @@
-package com.UAM.RISINR.service.implementations;
+package com.UAM.RISINR.service.access.implementation;
 
 import com.UAM.RISINR.model.Sesion;
 import com.UAM.RISINR.model.SesionPK;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
-import com.UAM.RISINR.model.dto.access.UsuarioResumenDTO;
+import com.UAM.RISINR.model.dto.shared.UsuarioDTO;
 import com.UAM.RISINR.model.dto.shared.AreaDTO;
 import com.UAM.RISINR.model.dto.shared.RolDTO;
 import com.UAM.RISINR.repository.AreaDeServicioRepository;
+import com.UAM.RISINR.repository.DatosAccesoRepository;
 import com.UAM.RISINR.repository.PerfilRepository;
 import com.UAM.RISINR.repository.RolRepository;
 import com.UAM.RISINR.repository.SesionRepository;
-import com.UAM.RISINR.repository.UsuarioRepository;
 import com.UAM.RISINR.repository.projection.PerfilRolView;
 import com.UAM.RISINR.repository.projection.RolView;
-import com.UAM.RISINR.repository.projection.UsuarioAuthView;
-import com.UAM.RISINR.service.AccessService;
-import com.UAM.RISINR.service.JwtService;
+import com.UAM.RISINR.service.access.AccessService;
+import com.UAM.RISINR.service.shared.JwtService;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 public class AccessServiceImpl implements AccessService {
 
-    private final UsuarioRepository usuarioRepo;
+    private final DatosAccesoRepository accesoRepo;
     private final PerfilRepository perfilRepo;
     private final RolRepository rolRepo;
     private final AreaDeServicioRepository areaRepo;
@@ -46,14 +45,14 @@ public class AccessServiceImpl implements AccessService {
     // AplicacionID fijo en 1
     private static final int APLICACION_ID = 1;
 
-    public AccessServiceImpl(UsuarioRepository usuarioRepo,
+    public AccessServiceImpl(DatosAccesoRepository accesoRepo,
                              PerfilRepository perfilRepo,
                              RolRepository rolRepo,
                              AreaDeServicioRepository areaRepo,
                              SesionRepository sesionRepo,
                              JwtService jwtService,
                              ObjectMapper objectMapper) {
-        this.usuarioRepo = usuarioRepo;
+        this.accesoRepo=accesoRepo;
         this.perfilRepo = perfilRepo;
         this.rolRepo = rolRepo;
         this.areaRepo = areaRepo;
@@ -71,8 +70,9 @@ public class AccessServiceImpl implements AccessService {
     @Override
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request, String ipDispositivo) {
-        // 1) Autenticar (0/1/>1 por BD legacy sin unique en UsuarioID)
-        var matches = usuarioRepo.autenticar(request.getUsuario(), request.getContrasena()); //  Regresa List con datos de usuarios con coincidencias en ID + Contraseñas
+        // 1) Autenticar 
+        var match = accesoRepo.findByIdUsuarioID(request.getUsuario());// Regresa List con datos de usuarios con coincidencias en ID + Contraseñas
+        /*
         System.out.println("============================================");
         System.out.println("DEBUG :: tamaño de matches = " + matches.size());
         for (int i = 0; i < matches.size(); i++) {
@@ -88,30 +88,27 @@ public class AccessServiceImpl implements AccessService {
                 + ", estado=" + m.getEstado());
         }
         System.out.println("============================================");
+        */
 
-        if (matches.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
+        if (match == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario invalido");
         }
-        if (matches.size() > 1) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "UsuarioID repetido para las credenciales dadas");
+        if (!match.get().getContrasena().equals(request.getContrasena())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contrasela invalida");
         }
-        UsuarioAuthView auth = matches.get(0);
 
         // 2) Usuario resumen (Util para saludar)
-        var usuario = new UsuarioResumenDTO(
-                auth.getUsuarioId(),
-                auth.getNombre(),
-                auth.getApellidoPaterno(),
-                auth.getApellidoMaterno()
-        );
+        var usuario = new UsuarioDTO(
+                                         match.get().getId().getUsuarioNumEmpleado(),
+                                          match.get().getId().getUsuarioCURP(),
+                                         match.get().getUsuario().getAreaidArea().getIdArea(),
+                                         match.get().getUsuario().getNombre(),
+                                         match.get().getUsuario().getApellidoPaterno(),
+                                        match.get().getUsuario().getApellidoMaterno());
+        
 
         // 3) Área
-        Integer areaId = auth.getAreaId();
-        if (areaId == null) {
-        // Datos inconsistentes: el usuario no tiene área asignada
-        throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no tiene área asignada.");
-        }
+        Integer areaId = usuario.getarea_idArea();
         AreaDTO area = areaRepo.findById(areaId)
                 .map(a -> new AreaDTO(a.getIdArea(), a.getNombre(), a.getDescripcion()))
                 .orElseThrow(() -> new ResponseStatusException(
@@ -120,12 +117,12 @@ public class AccessServiceImpl implements AccessService {
                 );
 
         // 4) Roles: ids/estado (Perfil) → detalle (Rol)
-        var perfiles = perfilRepo.rolesDeUsuario(auth.getNumEmpleado(), auth.getCurp()); //List con Roles del usuario
+        var perfiles = perfilRepo.findByPerfilPKUsuarioNumEmpleadoAndPerfilPKUsuarioCURP(usuario.getnumEmpleado(), usuario.getcurp()); //List con Roles del usuario
         if (perfiles.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario no tiene roles asignados");
         }
         List<Integer> rolIds = perfiles.stream()
-                .map(PerfilRolView::getRolId)
+                .map(PerfilRolView::getPerfilPKRolidRol)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -150,16 +147,16 @@ public class AccessServiceImpl implements AccessService {
 
             var spk = new SesionPK(
                     horaInicio,
-                    auth.getNumEmpleado(),
-                    auth.getCurp(),
+                    usuario.getnumEmpleado(),
+                    usuario.getcurp(),
                     APLICACION_ID
             );
-            var sesion = new Sesion(spk, ip15, auth.getUsuarioId());
+            var sesion = new Sesion(spk, ip15, match.get().getId().getUsuarioID());
             sesion.setRolNombre(unico.getNombre());
             sesionRepo.save(sesion);
 
-            String token = jwtService.emitirToken(auth.getNumEmpleado(),
-                    auth.getCurp(),
+            String token = jwtService.emitirToken(usuario.getnumEmpleado(),
+                    usuario.getcurp(),
                     horaInicio,
                     APLICACION_ID
             );
@@ -186,17 +183,10 @@ public class AccessServiceImpl implements AccessService {
 
         // 1) Ubicar al usuario por su UsuarioID (SIN contraseña en este paso)
         //    Esperamos 0, 1 o >1 (por legado sin unique en UsuarioID)
-        List<UsuarioAuthView> candidatos = usuarioRepo.buscarBasicoPorUsuario(request.getUsuarioId());
-        if (candidatos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado.");
-        }
-        if (candidatos.size() > 1) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "UsuarioID ambiguo (duplicado).");
-        }
-        UsuarioAuthView auth = candidatos.get(0);
+        var usuario = accesoRepo.findByIdUsuarioID(request.getUsuarioId());
 
         // 2) Área OBLIGATORIA
-        Integer areaId = auth.getAreaId();
+        Integer areaId = usuario.get().getUsuario().getAreaidArea().getIdArea();
         if (areaId == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no tiene área asignada.");
         }
@@ -207,13 +197,7 @@ public class AccessServiceImpl implements AccessService {
                         "El área asociada al usuario no existe (id=" + areaId + ").")
                 );
 
-        // 3) Validar que el rol elegido pertenece al usuario
-        boolean pertenece = perfilRepo.perteneceRol(auth.getNumEmpleado(), auth.getCurp(), request.getIdRol());
-        if (!pertenece) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El rol elegido no pertenece al usuario.");
-        }
-
-        // 4) Obtener el detalle del rol elegido (nombre/descripcion) — usando la proyección que ya tienes
+        // 3) Obtener el detalle del rol elegido (nombre/descripcion) — usando la proyección que ya tienes
         List<RolView> rolRows = rolRepo.findByIdRolIn(List.of(request.getIdRol()));
         if (rolRows.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El rol elegido no existe.");
@@ -227,70 +211,38 @@ public class AccessServiceImpl implements AccessService {
 
         SesionPK spk = new SesionPK(
                 horaInicio,
-                auth.getNumEmpleado(),
-                auth.getCurp(),
+                usuario.get().getId().getUsuarioNumEmpleado(),
+                usuario.get().getId().getUsuarioCURP(),
                 APLICACION_ID
         );
 
-        Sesion sesion = new Sesion(spk, ip15, auth.getUsuarioId());
+        Sesion sesion = new Sesion(spk, ip15, usuario.get().getId().getUsuarioID());
         sesion.setRolNombre(rolElegido.getNombre());
         sesionRepo.save(sesion);
 
         String token = jwtService.emitirToken(
-                auth.getNumEmpleado(),
-                auth.getCurp(),
+                usuario.get().getId().getUsuarioNumEmpleado(),
+                usuario.get().getId().getUsuarioCURP(),
                 horaInicio,
                 APLICACION_ID
         );
 
         // 6) Usuario en respuesta (mismo criterio que en login)
-        UsuarioResumenDTO usuario = new UsuarioResumenDTO(
-                auth.getUsuarioId(),
-                auth.getNombre(),
-                auth.getApellidoPaterno(),
-                auth.getApellidoMaterno()
-        );
+        var usuariodto = new UsuarioDTO(
+                                         usuario.get().getId().getUsuarioNumEmpleado(),
+                                          usuario.get().getId().getUsuarioCURP(),
+                                         usuario.get().getUsuario().getAreaidArea().getIdArea(),
+                                         usuario.get().getUsuario().getNombre(),
+                                         usuario.get().getUsuario().getApellidoPaterno(),
+                                        usuario.get().getUsuario().getApellidoMaterno());
 
         // 7) Responder con SOLO el rol elegido y requiereSeleccionRol=false
-        return new LoginResponseDTO(usuario, area, List.of(rolElegido), token, false);
+        return new LoginResponseDTO(usuariodto, area, List.of(rolElegido), token, false);
     }
-
-    @Override
-    @Transactional
-    public void logout(String tokenJWT, String tipoCierre) {
-
-        if (tokenJWT == null || tokenJWT.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token requerido.");
-        }
-        if (tipoCierre == null || tipoCierre.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "tipoCierre requerido.");
-        }
-
-        // 1) Validar/parsear token y reconstruir la PK de la Sesión
-        final var info = jwtService.parseToken(tokenJWT);
-        final var pk = new SesionPK(
-                info.getHoraInicio(),      // hst
-                info.getNumEmpleado(),     // nme
-                info.getCurp(),            // curp
-                info.getAplicacionId()     // asi
-        );
-
-        // 2) Buscar la Sesión y actualizar fin de sesión + tipo de cierre
-        var sesion = sesionRepo.findById(pk)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Sesión no encontrada para el token provisto."));
-
-        sesion.setHoraFin(java.math.BigInteger.valueOf(System.currentTimeMillis()));
-        sesion.setTipoCierre(normalizarTipoCierre(tipoCierre));
-
-        sesionRepo.save(sesion);
-    }
-
-    
     
     @Override
     @Transactional
-    public void logoutDesdeSubject(String subjectJson, String tipoCierre) {
+    public void logout(String subjectJson, String tipoCierre) {
         try {
             // subjectJson tiene { nme, curp, hst, asi } tal como lo emites en JwtService
             JwtSessionInfo info = objectMapper.readValue(subjectJson, JwtSessionInfo.class);

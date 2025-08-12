@@ -2,7 +2,7 @@ package com.UAM.RISINR.config;
 
 import com.UAM.RISINR.security.Cybersecurity;
 import com.UAM.RISINR.security.jwt.JwtAuthenticationFilter;
-import com.UAM.RISINR.service.AccessService;
+import com.UAM.RISINR.service.access.AccessService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;

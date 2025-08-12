@@ -1,9 +1,14 @@
-package com.UAM.RISINR.service;
+package com.UAM.RISINR.service.access;
 
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
 
+
+/* 
+Definir por separado la interfaz y el servicio permitirá 
+cambiar la implementacion si se cambia la base de datos
+*/
 public interface AccessService {
 
     /**
@@ -16,11 +21,6 @@ public interface AccessService {
      * Confirma el rol elegido cuando el usuario tenía varias opciones; crea sesión y devuelve token.
      */
     LoginResponseDTO seleccionarRol(SeleccionRolRequestDTO request, String ipDispositivo);
-
-    /**
-     * Cierra la sesión asociada al token: registra horaFin y tipoCierre.
-     */
-    void logout(String tokenJWT, String tipoCierre);
     
-    void logoutDesdeSubject(String subjectJson, String tipoCierre);
+    void logout(String subjectJson, String tipoCierre);
 }

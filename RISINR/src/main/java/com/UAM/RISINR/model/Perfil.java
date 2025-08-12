@@ -1,6 +1,5 @@
 package com.UAM.RISINR.model;
 
-import java.io.Serializable;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -14,7 +13,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "Perfil")
-public class Perfil implements Serializable {
+public class Perfil {
 
     private static final long serialVersionUID = 1L;
     

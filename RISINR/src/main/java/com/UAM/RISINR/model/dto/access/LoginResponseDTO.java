@@ -1,12 +1,13 @@
 package com.UAM.RISINR.model.dto.access;
 
+import com.UAM.RISINR.model.dto.shared.UsuarioDTO;
 import com.UAM.RISINR.model.dto.shared.AreaDTO;
 import com.UAM.RISINR.model.dto.shared.RolDTO;
 import java.util.List;
 
 public class LoginResponseDTO {
 
-    private UsuarioResumenDTO usuario; // Para el saludo al elegir rol
+    private UsuarioDTO usuario; // Para el saludo al elegir rol
     private AreaDTO area;              // Área del usuario
     private List<RolDTO> roles;        // Roles disponibles
 
@@ -19,7 +20,7 @@ public class LoginResponseDTO {
     public LoginResponseDTO() {
     }
 
-    public LoginResponseDTO(UsuarioResumenDTO usuario, AreaDTO area, List<RolDTO> roles, String tokenJWT, boolean requiereSeleccionRol) {
+    public LoginResponseDTO(UsuarioDTO usuario, AreaDTO area, List<RolDTO> roles, String tokenJWT, boolean requiereSeleccionRol) {
         this.usuario = usuario;
         this.area = area;
         this.roles = roles;
@@ -27,11 +28,11 @@ public class LoginResponseDTO {
         this.requiereSeleccionRol = requiereSeleccionRol;
     }
 
-    public UsuarioResumenDTO getUsuario() { 
+    public UsuarioDTO getUsuario() { 
         return usuario; 
     }
     
-    public void setUsuario(UsuarioResumenDTO usuario) {
+    public void setUsuario(UsuarioDTO usuario) {
         this.usuario = usuario; 
     }
 

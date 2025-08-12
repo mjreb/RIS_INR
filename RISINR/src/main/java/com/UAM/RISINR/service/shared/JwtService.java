@@ -1,4 +1,4 @@
-package com.UAM.RISINR.service;
+package com.UAM.RISINR.service.shared;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
 
 public interface JwtService {

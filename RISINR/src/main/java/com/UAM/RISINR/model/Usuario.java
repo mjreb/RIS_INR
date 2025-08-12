@@ -10,8 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -45,24 +43,6 @@ public class Usuario implements Serializable {
     @Column(name = "ApellidoMaterno")
     private String apellidoMaterno;
     
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
-    @Column(name = "UsuarioID")
-    private String usuarioID;
-    
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 20)
-    @Column(name = "Passwd")
-    private String passwd;
-    
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
-    @Column(name = "Estado")
-    private String estado;
-    
     @JoinColumn(name = "Area_idArea", referencedColumnName = "idArea")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private AreaDeServicio areaidArea;
@@ -73,6 +53,8 @@ public class Usuario implements Serializable {
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
     private Collection<ControlEstudios> controlEstudiosCollection;
     
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private DatosAcceso datosAcceso;
 
     public Usuario() {
     }
@@ -81,14 +63,11 @@ public class Usuario implements Serializable {
         this.usuarioPK = usuarioPK;
     }
 
-    public Usuario(UsuarioPK usuarioPK, String nombre, String apellidoPaterno, String apellidoMaterno, String usuarioID, String passwd, String estado) {
+    public Usuario(UsuarioPK usuarioPK, String nombre, String apellidoPaterno, String apellidoMaterno) {
         this.usuarioPK = usuarioPK;
         this.nombre = nombre;
         this.apellidoPaterno = apellidoPaterno;
         this.apellidoMaterno = apellidoMaterno;
-        this.usuarioID = usuarioID;
-        this.passwd = passwd;
-        this.estado = estado;
     }
 
     public Usuario(int numEmpleado, String curp) {
@@ -127,30 +106,6 @@ public class Usuario implements Serializable {
         this.apellidoMaterno = apellidoMaterno;
     }
 
-    public String getUsuarioID() {
-        return usuarioID;
-    }
-
-    public void setUsuarioID(String usuarioID) {
-        this.usuarioID = usuarioID;
-    }
-
-    public String getPasswd() {
-        return passwd;
-    }
-
-    public void setPasswd(String passwd) {
-        this.passwd = passwd;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
     public AreaDeServicio getAreaidArea() {
         return areaidArea;
     }
@@ -177,6 +132,14 @@ public class Usuario implements Serializable {
         this.controlEstudiosCollection = controlEstudiosCollection;
     }
 
+    public DatosAcceso getDatosAcceso() {
+    return datosAcceso;
+}
+
+public void setDatosAcceso(DatosAcceso datosAcceso) {
+    this.datosAcceso = datosAcceso;
+}
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -194,7 +157,7 @@ public class Usuario implements Serializable {
 
     @Override
     public String toString() {
-        return "Usuario{usuarioPK=" + usuarioPK + ", usuarioID='" + usuarioID + "'}";
+        return "Usuario{usuarioPK=" + usuarioPK +"}";
     }
     
 }
