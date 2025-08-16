@@ -1,7 +1,10 @@
 package com.UAM.RISINR.service.access.implementation;
 
+import com.UAM.RISINR.model.RegistroEvento;
+import com.UAM.RISINR.model.RegistroEventoPK;
 import com.UAM.RISINR.model.Sesion;
 import com.UAM.RISINR.model.SesionPK;
+import com.UAM.RISINR.model.dto.access.CredencialesDTO;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
@@ -11,6 +14,7 @@ import com.UAM.RISINR.model.dto.shared.RolDTO;
 import com.UAM.RISINR.repository.AreaDeServicioRepository;
 import com.UAM.RISINR.repository.DatosAccesoRepository;
 import com.UAM.RISINR.repository.PerfilRepository;
+import com.UAM.RISINR.repository.RegistroEventoRepository;
 import com.UAM.RISINR.repository.RolRepository;
 import com.UAM.RISINR.repository.SesionRepository;
 import com.UAM.RISINR.repository.projection.PerfilRolView;
@@ -34,6 +38,7 @@ import java.util.stream.Collectors;
 @Service
 public class AccessServiceImpl implements AccessService {
 
+    private final RegistroEventoLogger registroEventoRepo;
     private final DatosAccesoRepository accesoRepo;
     private final PerfilRepository perfilRepo;
     private final RolRepository rolRepo;
@@ -41,17 +46,25 @@ public class AccessServiceImpl implements AccessService {
     private final SesionRepository sesionRepo;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+    private String datos;
 
-    // AplicacionID fijo en 1
-    private static final int APLICACION_ID = 1;
+    // AplicacionID fijo en 0 (Login)
+    private static final int EVENTO_LOGIN_EXITOSO = 2;     // "Login Exitoso"
+    private static final int EVENTO_PWD_INCORRECTA = 1001; // "Contraseña Incorrecta en Login"
+    private static final int EVENTO_USUARIO_INVALIDO = 1002; // "Usuario invalido"
 
-    public AccessServiceImpl(DatosAccesoRepository accesoRepo,
+    // Aplicación que registra el evento
+    private static final int APLICACION_ID = 0;
+
+    public AccessServiceImpl(RegistroEventoLogger registroEventoRepo,
+                             DatosAccesoRepository accesoRepo,
                              PerfilRepository perfilRepo,
                              RolRepository rolRepo,
                              AreaDeServicioRepository areaRepo,
                              SesionRepository sesionRepo,
                              JwtService jwtService,
                              ObjectMapper objectMapper) {
+        this.registroEventoRepo = registroEventoRepo;
         this.accesoRepo=accesoRepo;
         this.perfilRepo = perfilRepo;
         this.rolRepo = rolRepo;
@@ -70,31 +83,23 @@ public class AccessServiceImpl implements AccessService {
     @Override
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request, String ipDispositivo) {
+        long hora= System.currentTimeMillis();
+        String ip15 = normalizarIp(ipDispositivo);
+        datos = "{\"usuarioId\":\"" +request.getUsuario() + "\"," +
+                   "\"contrasena\":\"" +request.getContrasena()+ "\"," +
+                   "\"ipAddress\":\"" + ip15 + "\"}";
         // 1) Autenticar 
         var match = accesoRepo.findByIdUsuarioID(request.getUsuario());// Regresa List con datos de usuarios con coincidencias en ID + Contraseñas
-        /*
-        System.out.println("============================================");
-        System.out.println("DEBUG :: tamaño de matches = " + matches.size());
-        for (int i = 0; i < matches.size(); i++) {
-            var m = matches.get(i);
-            System.out.println("DEBUG :: fila " + (i + 1) + " -> "
-                + "usuarioId=" + m.getUsuarioId()
-                + ", nombre=" + m.getNombre()
-                + ", apellidoPaterno=" + m.getApellidoPaterno()
-                + ", apellidoMaterno=" + m.getApellidoMaterno()
-                + ", areaId=" + m.getAreaId()
-                + ", numEmpleado=" + m.getNumEmpleado()
-                + ", curp=" + m.getCurp()
-                + ", estado=" + m.getEstado());
-        }
-        System.out.println("============================================");
-        */
 
-        if (match == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario invalido");
+        if (!match.isPresent()) {
+            registroEventoRepo.log(EVENTO_USUARIO_INVALIDO, hora, datos);
+            System.out.println("Contraseña invalida");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "USER_INVALID");
         }
         if (!match.get().getContrasena().equals(request.getContrasena())){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contrasela invalida");
+            registroEventoRepo.log(EVENTO_PWD_INCORRECTA, hora, datos);
+            System.out.println("Contraseña invalida");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PASSWORD_INVALID");
         }
 
         // 2) Usuario resumen (Util para saludar)
@@ -142,11 +147,10 @@ public class AccessServiceImpl implements AccessService {
         if (roles.size() == 1) {
             RolDTO unico = roles.get(0);
 
-            long horaInicio = System.currentTimeMillis();
-            String ip15 = normalizarIp(ipDispositivo);
-
+            registroEventoRepo.log(EVENTO_LOGIN_EXITOSO, hora, datos);
+            
             var spk = new SesionPK(
-                    horaInicio,
+                    hora,
                     usuario.getnumEmpleado(),
                     usuario.getcurp(),
                     APLICACION_ID
@@ -157,7 +161,7 @@ public class AccessServiceImpl implements AccessService {
 
             String token = jwtService.emitirToken(usuario.getnumEmpleado(),
                     usuario.getcurp(),
-                    horaInicio,
+                    hora,
                     APLICACION_ID
             );
 
@@ -205,8 +209,9 @@ public class AccessServiceImpl implements AccessService {
         RolView r = rolRows.get(0);
         RolDTO rolElegido = new RolDTO(r.getIdRol(), r.getNombre(), r.getDescripcion());
 
-        // 5) Crear Sesión (PK SIN UsuarioID) y emitir token
+        // 4) Crear Sesión (PK SIN UsuarioID) y emitir token
         long horaInicio = System.currentTimeMillis();
+        registroEventoRepo.log(EVENTO_LOGIN_EXITOSO, horaInicio, datos);
         String ip15 = normalizarIp(ipDispositivo);
 
         SesionPK spk = new SesionPK(
@@ -227,7 +232,7 @@ public class AccessServiceImpl implements AccessService {
                 APLICACION_ID
         );
 
-        // 6) Usuario en respuesta (mismo criterio que en login)
+        // 5) Usuario en respuesta (mismo criterio que en login)
         var usuariodto = new UsuarioDTO(
                                          usuario.get().getId().getUsuarioNumEmpleado(),
                                           usuario.get().getId().getUsuarioCURP(),
@@ -236,7 +241,7 @@ public class AccessServiceImpl implements AccessService {
                                          usuario.get().getUsuario().getApellidoPaterno(),
                                         usuario.get().getUsuario().getApellidoMaterno());
 
-        // 7) Responder con SOLO el rol elegido y requiereSeleccionRol=false
+        // 6) Responder con SOLO el rol elegido y requiereSeleccionRol=false
         return new LoginResponseDTO(usuariodto, area, List.of(rolElegido), token, false);
     }
     

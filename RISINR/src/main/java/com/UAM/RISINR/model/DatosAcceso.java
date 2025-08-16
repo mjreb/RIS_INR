@@ -1,6 +1,5 @@
 package com.UAM.RISINR.model;
 
-import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -13,7 +12,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "DatosAcceso")
-public class DatosAcceso implements Serializable{
+public class DatosAcceso{
 
     @EmbeddedId
     private DatosAccesoPK id;

@@ -2,6 +2,16 @@
 window._loginCache = null;
 var host = "http://" + location.host+"/RISSERVER/";
 var FSM2;
+var contador_intentos=0;
+
+
+function intentoFallido(){
+    contador_intentos += 1;
+    alert("Contraseña invalida");
+    if (contador_intentos >= 5){
+        alert("Usuario Bloqueado");
+    }
+}
 
 function agregarPreloader(servicio) {
     $('#loader' + servicio).show();
@@ -218,9 +228,9 @@ function logIn(estado, e) {
       }
     },
     statusCode: {
-      401: function () { alert('Credenciales inválidas'); },
+      401: function () { alert('Credenciales invalidas'); intentoFallido();},
       403: function () { alert('Acceso denegado: usuario sin roles'); },
-      409: function () { alert('Conflicto: usuario duplicado o sin área'); }
+      409: function () { alert('Conflicto: usuario duplicado o sin area'); }
     },
     error: function (xhr) {
       console.error('Error login', xhr);

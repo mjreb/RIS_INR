@@ -3,6 +3,7 @@ package com.UAM.RISINR.config;
 import com.UAM.RISINR.security.Cybersecurity;
 import com.UAM.RISINR.security.jwt.JwtAuthenticationFilter;
 import com.UAM.RISINR.service.access.AccessService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -51,7 +52,13 @@ public class SecurityConfig {
                 // /access/logout -> REQUIERE autenticación
                 .anyRequest().authenticated()
            )
-           .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+      .exceptionHandling(ex -> ex
+          // No autenticado → 401
+          .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+          // Autenticado sin permiso → 403
+          .accessDeniedHandler((req, res, e) -> res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+      )
+      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
