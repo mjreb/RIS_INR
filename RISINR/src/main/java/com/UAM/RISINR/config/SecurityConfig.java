@@ -3,6 +3,7 @@ package com.UAM.RISINR.config;
 import com.UAM.RISINR.security.Cybersecurity;
 import com.UAM.RISINR.security.jwt.JwtAuthenticationFilter;
 import com.UAM.RISINR.service.access.AccessService;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +47,10 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
            .authorizeHttpRequests(auth -> auth
+                // Permite despachos que NO son la petición original
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD, DispatcherType.ASYNC).permitAll()
+                // Asegura que /error sea público (con y sin context-path)
+                .requestMatchers("/error", "/RISSERVER/error").permitAll()
                 .requestMatchers("/access/login", "/access/seleccionar-rol").permitAll()
                 .requestMatchers("/login.html", "/css/**", "/js/**", "/img/**").permitAll()
                 .requestMatchers("/RISFSM/**").permitAll()

@@ -31,7 +31,7 @@
     logoutUrl: '/access/logout?tipoCierre=Inactividad',
     loginUrl:  '/login.html',
     cookieName: 'token',
-    checkEveryMs: 30000
+    checkEveryMs: 300000  // Consultar cada 5 minutos que el Token sigue activo
   };
 
   function onTokenExpired() {

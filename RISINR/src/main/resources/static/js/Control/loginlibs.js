@@ -230,7 +230,8 @@ function logIn(estado, e) {
     statusCode: {
       401: function () { alert('Credenciales invalidas'); intentoFallido();},
       403: function () { alert('Acceso denegado: usuario sin roles'); },
-      409: function () { alert('Conflicto: usuario duplicado o sin area'); }
+      409: function () { alert('Conflicto: usuario duplicado o sin area'); },
+      423: function () { alert('Cuenta bloqueada. Acude a administracion')}
     },
     error: function (xhr) {
       console.error('Error login', xhr);

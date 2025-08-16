@@ -1,4 +1,4 @@
-package com.UAM.RISINR.service.access.implementation;
+package com.UAM.RISINR.service.shared;
 
 import com.UAM.RISINR.model.RegistroEvento;
 import com.UAM.RISINR.model.RegistroEventoPK;
@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RegistroEventoLogger {
 
-    private static final int APLICACION_ID = 0;
-
     private final RegistroEventoRepository registroEventoRepo;
 
     // Inyección por constructor (sin Lombok, sin @Autowired — Spring detecta único constructor)
@@ -21,11 +19,11 @@ public class RegistroEventoLogger {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void log(int eventoId, long horaMs, String datosJson) {
+    public void log(int eventoId, int aplicacionId, long horaMs, String datosJson) {
         // Reintento simple por posible colisión de PK en el mismo milisegundo
         for (int i = 0; i < 5; i++) {
             try {
-                RegistroEventoPK pk = new RegistroEventoPK(eventoId, APLICACION_ID, horaMs + i);
+                RegistroEventoPK pk = new RegistroEventoPK(eventoId, aplicacionId, horaMs + i);
                 RegistroEvento re = new RegistroEvento(pk, datosJson);
                 registroEventoRepo.save(re);
                 return;

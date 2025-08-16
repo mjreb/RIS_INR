@@ -1,5 +1,6 @@
 package com.UAM.RISINR.service.access.implementation;
 
+import com.UAM.RISINR.service.shared.RegistroEventoLogger;
 import com.UAM.RISINR.model.RegistroEvento;
 import com.UAM.RISINR.model.RegistroEventoPK;
 import com.UAM.RISINR.model.Sesion;
@@ -22,6 +23,7 @@ import com.UAM.RISINR.repository.projection.RolView;
 import com.UAM.RISINR.service.access.AccessService;
 import com.UAM.RISINR.service.shared.JwtService;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import org.springframework.http.HttpStatus;
@@ -37,8 +39,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class AccessServiceImpl implements AccessService {
-
-    private final RegistroEventoLogger registroEventoRepo;
+    private final RegistroEventoRepository registroEventoRepo;
+    private final AccountLockedService blockAccount;
+    private final RegistroEventoLogger registroEvento;
     private final DatosAccesoRepository accesoRepo;
     private final PerfilRepository perfilRepo;
     private final RolRepository rolRepo;
@@ -52,11 +55,14 @@ public class AccessServiceImpl implements AccessService {
     private static final int EVENTO_LOGIN_EXITOSO = 2;     // "Login Exitoso"
     private static final int EVENTO_PWD_INCORRECTA = 1001; // "Contraseña Incorrecta en Login"
     private static final int EVENTO_USUARIO_INVALIDO = 1002; // "Usuario invalido"
+    private static final int EVENTO_USUARIO_BLOQUEADO = 1003;//"Usuario con estado!=Activo"
 
     // Aplicación que registra el evento
     private static final int APLICACION_ID = 0;
 
-    public AccessServiceImpl(RegistroEventoLogger registroEventoRepo,
+    public AccessServiceImpl(RegistroEventoRepository registroEventoRepo,
+                             RegistroEventoLogger registroEvento,
+                             AccountLockedService blockAccount,
                              DatosAccesoRepository accesoRepo,
                              PerfilRepository perfilRepo,
                              RolRepository rolRepo,
@@ -64,7 +70,9 @@ public class AccessServiceImpl implements AccessService {
                              SesionRepository sesionRepo,
                              JwtService jwtService,
                              ObjectMapper objectMapper) {
-        this.registroEventoRepo = registroEventoRepo;
+        this.registroEventoRepo=registroEventoRepo;
+        this.blockAccount=blockAccount;
+        this.registroEvento = registroEvento;
         this.accesoRepo=accesoRepo;
         this.perfilRepo = perfilRepo;
         this.rolRepo = rolRepo;
@@ -84,22 +92,52 @@ public class AccessServiceImpl implements AccessService {
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request, String ipDispositivo) {
         long hora= System.currentTimeMillis();
+        long umbralBloqueo=hora-900000; //15 Minutos.
         String ip15 = normalizarIp(ipDispositivo);
-        datos = "{\"usuarioId\":\"" +request.getUsuario() + "\"," +
-                   "\"contrasena\":\"" +request.getContrasena()+ "\"," +
-                   "\"ipAddress\":\"" + ip15 + "\"}";
+        record EventoDatos(String usuarioId, String contrasena, String ipAddress) {}
+        var datosObj = new EventoDatos(request.getUsuario(), request.getContrasena(), ip15);
+        try {
+            datos=objectMapper.writeValueAsString(datosObj); // JSON correcto
+        } catch (JsonProcessingException e) {
+            e.printStackTrace(); // o mejor: log.error("Error serializando JSON", e);
+            datos = "{}"; // valor por defecto para no romper la app
+        }
         // 1) Autenticar 
         var match = accesoRepo.findByIdUsuarioID(request.getUsuario());// Regresa List con datos de usuarios con coincidencias en ID + Contraseñas
 
         if (!match.isPresent()) {
-            registroEventoRepo.log(EVENTO_USUARIO_INVALIDO, hora, datos);
-            System.out.println("Contraseña invalida");
+            registroEvento.log(EVENTO_USUARIO_INVALIDO,APLICACION_ID, hora, datos);
+            System.out.println("Usuario invalido");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "USER_INVALID");
-        }
+        }        
         if (!match.get().getContrasena().equals(request.getContrasena())){
-            registroEventoRepo.log(EVENTO_PWD_INCORRECTA, hora, datos);
+            registroEvento.log(EVENTO_PWD_INCORRECTA, APLICACION_ID, hora, datos);
+            
+            //Cuenta los Intentos fallidos con mismo UsuarioID e ipAddress en ultimos 15 minutos
+            var conteo=0;
+            var matches=registroEventoRepo.findByIdEventoIdAndIdHoraEventoGreaterThanEqual(EVENTO_PWD_INCORRECTA, umbralBloqueo);
+            for (var it : matches){
+                try {
+                    var json = objectMapper.readTree(it.getDatos());
+                    if (request.getUsuario().equals(json.path("usuarioId").asText(null)) &&
+                            ip15.equals(json.path("ipAddress").asText(null))) {
+                        conteo++;
+                    }
+                    if (conteo>=4){
+                        blockAccount.block(request.getUsuario());
+                        break;
+                    }
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
             System.out.println("Contraseña invalida");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PASSWORD_INVALID");
+        }
+        if (!"Activo".equals(match.get().getEstado())){
+            registroEvento.log(EVENTO_USUARIO_BLOQUEADO, APLICACION_ID, hora, datos);
+            System.out.println("Usuario Bloqueado");
+            throw new ResponseStatusException(HttpStatus.LOCKED, "USER_LOCKED");
         }
 
         // 2) Usuario resumen (Util para saludar)
@@ -147,7 +185,7 @@ public class AccessServiceImpl implements AccessService {
         if (roles.size() == 1) {
             RolDTO unico = roles.get(0);
 
-            registroEventoRepo.log(EVENTO_LOGIN_EXITOSO, hora, datos);
+            registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, hora, datos);
             
             var spk = new SesionPK(
                     hora,
@@ -211,7 +249,7 @@ public class AccessServiceImpl implements AccessService {
 
         // 4) Crear Sesión (PK SIN UsuarioID) y emitir token
         long horaInicio = System.currentTimeMillis();
-        registroEventoRepo.log(EVENTO_LOGIN_EXITOSO, horaInicio, datos);
+        registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, horaInicio, datos);
         String ip15 = normalizarIp(ipDispositivo);
 
         SesionPK spk = new SesionPK(
