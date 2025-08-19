@@ -1,4 +1,4 @@
-package com.UAM.RISINR.service.implementations;
+package com.UAM.RISINR.service.shared.implementations;
 
 import com.UAM.RISINR.security.Cybersecurity;
 import com.UAM.RISINR.service.shared.JwtService;

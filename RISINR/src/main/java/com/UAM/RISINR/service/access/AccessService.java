@@ -3,7 +3,6 @@ package com.UAM.RISINR.service.access;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
-import com.UAM.RISINR.model.dto.shared.UsuarioDTO;
 
 
 /* 
@@ -17,6 +16,4 @@ public interface AccessService {
     LoginResponseDTO seleccionarRol(SeleccionRolRequestDTO request, String ipDispositivo);
    
     void logout(String subjectJson, String tipoCierre);
-    
-    //void bloqueaUsuario(UsuarioDTO usuario);
 }

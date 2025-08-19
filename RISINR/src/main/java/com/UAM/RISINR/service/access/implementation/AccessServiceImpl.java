@@ -1,11 +1,7 @@
 package com.UAM.RISINR.service.access.implementation;
 
-import com.UAM.RISINR.service.shared.RegistroEventoLogger;
-import com.UAM.RISINR.model.RegistroEvento;
-import com.UAM.RISINR.model.RegistroEventoPK;
 import com.UAM.RISINR.model.Sesion;
 import com.UAM.RISINR.model.SesionPK;
-import com.UAM.RISINR.model.dto.access.CredencialesDTO;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
 import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
@@ -22,6 +18,7 @@ import com.UAM.RISINR.repository.projection.PerfilRolView;
 import com.UAM.RISINR.repository.projection.RolView;
 import com.UAM.RISINR.service.access.AccessService;
 import com.UAM.RISINR.service.shared.JwtService;
+import com.UAM.RISINR.service.shared.implementations.RegistroEventoLogger;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +53,7 @@ public class AccessServiceImpl implements AccessService {
     private static final int EVENTO_PWD_INCORRECTA = 1001; // "Contraseña Incorrecta en Login"
     private static final int EVENTO_USUARIO_INVALIDO = 1002; // "Usuario invalido"
     private static final int EVENTO_USUARIO_BLOQUEADO = 1003;//"Usuario con estado!=Activo"
-
+    private static final int EVENTO_BLOQUEO_DE_USUARIO = 3;//"Cambio de Estado='Activo' -> Estado='Bloqueado'
     // Aplicación que registra el evento
     private static final int APLICACION_ID = 0;
 
@@ -109,7 +106,12 @@ public class AccessServiceImpl implements AccessService {
             registroEvento.log(EVENTO_USUARIO_INVALIDO,APLICACION_ID, hora, datos);
             System.out.println("Usuario invalido");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "USER_INVALID");
-        }        
+        }
+        if (!"Activo".equals(match.get().getEstado())){
+            registroEvento.log(EVENTO_USUARIO_BLOQUEADO, APLICACION_ID, hora, datos);
+            System.out.println("Usuario Bloqueado");
+            throw new ResponseStatusException(HttpStatus.LOCKED, "USER_LOCKED");
+        }
         if (!match.get().getContrasena().equals(request.getContrasena())){
             registroEvento.log(EVENTO_PWD_INCORRECTA, APLICACION_ID, hora, datos);
             
@@ -125,6 +127,7 @@ public class AccessServiceImpl implements AccessService {
                     }
                     if (conteo>=4){
                         blockAccount.block(request.getUsuario());
+                        registroEvento.log(EVENTO_BLOQUEO_DE_USUARIO, APLICACION_ID, hora+1, datos);
                         break;
                     }
                 } catch (JsonProcessingException e) {
@@ -133,11 +136,6 @@ public class AccessServiceImpl implements AccessService {
             }
             System.out.println("Contraseña invalida");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PASSWORD_INVALID");
-        }
-        if (!"Activo".equals(match.get().getEstado())){
-            registroEvento.log(EVENTO_USUARIO_BLOQUEADO, APLICACION_ID, hora, datos);
-            System.out.println("Usuario Bloqueado");
-            throw new ResponseStatusException(HttpStatus.LOCKED, "USER_LOCKED");
         }
 
         // 2) Usuario resumen (Util para saludar)

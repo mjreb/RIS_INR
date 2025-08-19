@@ -1,4 +1,4 @@
-package com.UAM.RISINR.service.shared;
+package com.UAM.RISINR.service.shared.implementations;
 
 import com.UAM.RISINR.model.RegistroEvento;
 import com.UAM.RISINR.model.RegistroEventoPK;
@@ -28,9 +28,7 @@ public class RegistroEventoLogger {
                 registroEventoRepo.save(re);
                 return;
             } catch (DataIntegrityViolationException e) {
-                // Si fue colisión de PK, probamos con hora+1; si fue otra cosa, el siguiente intento podría pasar.
             }
         }
-        // Si quieres, registra un warn en tu logger de app.
     }
 }
