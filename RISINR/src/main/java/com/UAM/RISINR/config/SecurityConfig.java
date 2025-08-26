@@ -49,7 +49,6 @@ public class SecurityConfig {
            .authorizeHttpRequests(auth -> auth
                 // Permite despachos que NO son la petición original
                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD, DispatcherType.ASYNC).permitAll()
-                // Asegura que /error sea público (con y sin context-path)
                 .requestMatchers("/error", "/RISSERVER/error").permitAll()
                 .requestMatchers("/access/login", "/access/seleccionar-rol").permitAll()
                 .requestMatchers("/login.html", "/css/**", "/js/**", "/img/**").permitAll()

@@ -18,7 +18,7 @@ public class RegistroEvento {
 
     @Basic(optional = false)
     @Column(name = "Datos", columnDefinition = "longtext", nullable = false)
-    private String datos; // Aquí recibes el JSON como String
+    private String datos; // Aquí se recibe el JSON como String
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Evento_idEvento", referencedColumnName = "idEvento", insertable = false, updatable = false)
@@ -35,7 +35,6 @@ public class RegistroEvento {
         this.datos = datos;
     }
 
-    // Getters & Setters
     public RegistroEventoPK getId() { return id; }
     public void setId(RegistroEventoPK id) { this.id = id; }
 

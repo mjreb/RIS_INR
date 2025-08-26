@@ -10,7 +10,7 @@ public class SecurityBeansConfig {
     @Bean
     public Cybersecurity cybersecurity() throws Exception {
         Cybersecurity c = new Cybersecurity();
-        c.generarLlaves(); // importante: inicializa private/public key
+        c.generarLlaves(); 
         return c;
     }
 }

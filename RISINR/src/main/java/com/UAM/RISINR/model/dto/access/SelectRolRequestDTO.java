@@ -1,14 +1,14 @@
 package com.UAM.RISINR.model.dto.access;
 
-public class SeleccionRolRequestDTO {
+public class SelectRolRequestDTO {
 
     private String usuarioId;  
     private Integer idRol;     
 
-    public SeleccionRolRequestDTO() {
+    public SelectRolRequestDTO() {
     }
 
-    public SeleccionRolRequestDTO(String usuarioId, Integer idRol) {
+    public SelectRolRequestDTO(String usuarioId, Integer idRol) {
         this.usuarioId = usuarioId;
         this.idRol = idRol;
     }

@@ -4,7 +4,7 @@ import com.UAM.RISINR.model.Sesion;
 import com.UAM.RISINR.model.SesionPK;
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
-import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
+import com.UAM.RISINR.model.dto.access.SelectRolRequestDTO;
 import com.UAM.RISINR.model.dto.shared.UsuarioDTO;
 import com.UAM.RISINR.model.dto.shared.AreaDTO;
 import com.UAM.RISINR.model.dto.shared.RolDTO;
@@ -17,9 +17,10 @@ import com.UAM.RISINR.repository.SesionRepository;
 import com.UAM.RISINR.repository.projection.PerfilRolView;
 import com.UAM.RISINR.repository.projection.RolView;
 import com.UAM.RISINR.service.access.AccessService;
+import com.UAM.RISINR.service.access.AccountLockedService;
 import com.UAM.RISINR.service.shared.JwtService;
-import com.UAM.RISINR.service.shared.implementations.RegistroEventoLogger;
 import com.UAM.RISINR.service.model.JwtSessionInfo;
+import com.UAM.RISINR.service.shared.RegistroEventoService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class AccessServiceImpl implements AccessService {
     private final RegistroEventoRepository registroEventoRepo;
     private final AccountLockedService blockAccount;
-    private final RegistroEventoLogger registroEvento;
+    private final RegistroEventoService registroEvento;
     private final DatosAccesoRepository accesoRepo;
     private final PerfilRepository perfilRepo;
     private final RolRepository rolRepo;
@@ -48,7 +49,6 @@ public class AccessServiceImpl implements AccessService {
     private final ObjectMapper objectMapper;
     private String datos;
 
-    // AplicacionID fijo en 0 (Login)
     private static final int EVENTO_LOGIN_EXITOSO = 2;     // "Login Exitoso"
     private static final int EVENTO_PWD_INCORRECTA = 1001; // "Contraseña Incorrecta en Login"
     private static final int EVENTO_USUARIO_INVALIDO = 1002; // "Usuario invalido"
@@ -58,7 +58,7 @@ public class AccessServiceImpl implements AccessService {
     private static final int APLICACION_ID = 0;
 
     public AccessServiceImpl(RegistroEventoRepository registroEventoRepo,
-                             RegistroEventoLogger registroEvento,
+                             RegistroEventoService registroEvento,
                              AccountLockedService blockAccount,
                              DatosAccesoRepository accesoRepo,
                              PerfilRepository perfilRepo,
@@ -96,7 +96,7 @@ public class AccessServiceImpl implements AccessService {
         try {
             datos=objectMapper.writeValueAsString(datosObj); // JSON correcto
         } catch (JsonProcessingException e) {
-            e.printStackTrace(); // o mejor: log.error("Error serializando JSON", e);
+            e.printStackTrace(); 
             datos = "{}"; // valor por defecto para no romper la app
         }
         // 1) Autenticar 
@@ -113,7 +113,6 @@ public class AccessServiceImpl implements AccessService {
             throw new ResponseStatusException(HttpStatus.LOCKED, "USER_LOCKED");
         }
         if (!match.get().getContrasena().equals(request.getContrasena())){
-            registroEvento.log(EVENTO_PWD_INCORRECTA, APLICACION_ID, hora, datos);
             
             //Cuenta los Intentos fallidos con mismo UsuarioID e ipAddress en ultimos 15 minutos
             var conteo=0;
@@ -134,6 +133,7 @@ public class AccessServiceImpl implements AccessService {
                     e.printStackTrace();
                 }
             }
+            registroEvento.log(EVENTO_PWD_INCORRECTA, APLICACION_ID, hora, datos);
             System.out.println("Contraseña invalida");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PASSWORD_INVALID");
         }
@@ -183,7 +183,6 @@ public class AccessServiceImpl implements AccessService {
         if (roles.size() == 1) {
             RolDTO unico = roles.get(0);
 
-            registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, hora, datos);
             
             var spk = new SesionPK(
                     hora,
@@ -200,6 +199,7 @@ public class AccessServiceImpl implements AccessService {
                     hora,
                     APLICACION_ID
             );
+            registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, hora, datos);
 
             // Opción 1: 'roles' solo con el elegido
             return new LoginResponseDTO(usuario, area, List.of(unico), token, false);
@@ -211,7 +211,7 @@ public class AccessServiceImpl implements AccessService {
 
     @Override
     @Transactional
-    public LoginResponseDTO seleccionarRol(SeleccionRolRequestDTO request, String ipDispositivo) {
+    public LoginResponseDTO seleccionarRol(SelectRolRequestDTO request, String ipDispositivo) {
 
         // 0) Validaciones de entrada básicas
         if (request == null || request.getUsuarioId() == null || request.getUsuarioId().isBlank()) {
@@ -222,7 +222,7 @@ public class AccessServiceImpl implements AccessService {
         }
 
         // 1) Ubicar al usuario por su UsuarioID (SIN contraseña en este paso)
-        //    Esperamos 0, 1 o >1 (por legado sin unique en UsuarioID)
+        //    Esperamos 0, 1 
         var usuario = accesoRepo.findByIdUsuarioID(request.getUsuarioId());
 
         // 2) Área OBLIGATORIA
@@ -247,7 +247,6 @@ public class AccessServiceImpl implements AccessService {
 
         // 4) Crear Sesión (PK SIN UsuarioID) y emitir token
         long horaInicio = System.currentTimeMillis();
-        registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, horaInicio, datos);
         String ip15 = normalizarIp(ipDispositivo);
 
         SesionPK spk = new SesionPK(
@@ -257,10 +256,6 @@ public class AccessServiceImpl implements AccessService {
                 APLICACION_ID
         );
 
-        Sesion sesion = new Sesion(spk, ip15, usuario.get().getId().getUsuarioID());
-        sesion.setRolNombre(rolElegido.getNombre());
-        sesionRepo.save(sesion);
-
         String token = jwtService.emitirToken(
                 usuario.get().getId().getUsuarioNumEmpleado(),
                 usuario.get().getId().getUsuarioCURP(),
@@ -268,6 +263,10 @@ public class AccessServiceImpl implements AccessService {
                 APLICACION_ID
         );
 
+        Sesion sesion = new Sesion(spk, ip15, usuario.get().getId().getUsuarioID());
+        sesion.setRolNombre(rolElegido.getNombre());
+        sesionRepo.save(sesion);
+        registroEvento.log(EVENTO_LOGIN_EXITOSO, APLICACION_ID, horaInicio, datos);
         // 5) Usuario en respuesta (mismo criterio que en login)
         var usuariodto = new UsuarioDTO(
                                          usuario.get().getId().getUsuarioNumEmpleado(),
@@ -285,10 +284,10 @@ public class AccessServiceImpl implements AccessService {
     @Transactional
     public void logout(String subjectJson, String tipoCierre) {
         try {
-            // subjectJson tiene { nme, curp, hst, asi } tal como lo emites en JwtService
+            // subjectJson tiene { nme, curp, hst, asi } tal como se emite en JwtService
             JwtSessionInfo info = objectMapper.readValue(subjectJson, JwtSessionInfo.class);
 
-            // Construir la PK EXACTA que insertaste al hacer login
+            // Construir la PK EXACTA al hacer login
             SesionPK pk = new SesionPK(
                     info.getHoraInicio(),
                     info.getNumEmpleado(),
@@ -303,12 +302,11 @@ public class AccessServiceImpl implements AccessService {
 
             var sesion = sesionOpt.get();
             sesion.setHoraFin(BigInteger.valueOf(System.currentTimeMillis()));
-            sesion.setTipoCierre(tipoCierre);
+            sesion.setTipoCierre(normalizarTipoCierre(tipoCierre));
             sesionRepo.save(sesion);
 
         } catch (Exception e) {
             // Si el subject no se puede parsear, no podemos cerrar sesión
-            // Loguea el error si lo necesitas.
         }
     }
     
@@ -320,9 +318,9 @@ public class AccessServiceImpl implements AccessService {
     }
     
     private String normalizarTipoCierre(String tc) {
-    if (tc == null) return null;
-    // Columna VARCHAR(25)
-    tc = tc.trim();
-    return tc.length() > 25 ? tc.substring(0, 25) : tc;
+        if (tc == null) return null;
+        // Columna VARCHAR(25)
+        tc = tc.trim();
+        return tc.length() > 25 ? tc.substring(0, 25) : tc;
 }
 }

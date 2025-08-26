@@ -3,21 +3,21 @@ package com.UAM.RISINR.service.shared.implementations;
 import com.UAM.RISINR.model.RegistroEvento;
 import com.UAM.RISINR.model.RegistroEventoPK;
 import com.UAM.RISINR.repository.RegistroEventoRepository;
+import com.UAM.RISINR.service.shared.RegistroEventoService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class RegistroEventoLogger {
+public class RegistroEventoLogger implements RegistroEventoService{
 
     private final RegistroEventoRepository registroEventoRepo;
 
-    // Inyección por constructor (sin Lombok, sin @Autowired — Spring detecta único constructor)
     public RegistroEventoLogger(RegistroEventoRepository registroEventoRepo) {
         this.registroEventoRepo = registroEventoRepo;
     }
-
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(int eventoId, int aplicacionId, long horaMs, String datosJson) {
         // Reintento simple por posible colisión de PK en el mismo milisegundo

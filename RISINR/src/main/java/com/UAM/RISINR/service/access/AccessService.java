@@ -2,7 +2,7 @@ package com.UAM.RISINR.service.access;
 
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
-import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
+import com.UAM.RISINR.model.dto.access.SelectRolRequestDTO;
 
 
 /* 
@@ -13,7 +13,7 @@ public interface AccessService {
 
     LoginResponseDTO login(LoginRequestDTO request, String ipDispositivo);
 
-    LoginResponseDTO seleccionarRol(SeleccionRolRequestDTO request, String ipDispositivo);
+    LoginResponseDTO seleccionarRol(SelectRolRequestDTO request, String ipDispositivo);
    
     void logout(String subjectJson, String tipoCierre);
 }

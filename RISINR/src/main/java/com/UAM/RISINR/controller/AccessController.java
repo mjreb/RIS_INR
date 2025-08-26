@@ -2,7 +2,7 @@ package com.UAM.RISINR.controller;
 
 import com.UAM.RISINR.model.dto.access.LoginRequestDTO;
 import com.UAM.RISINR.model.dto.access.LoginResponseDTO;
-import com.UAM.RISINR.model.dto.access.SeleccionRolRequestDTO;
+import com.UAM.RISINR.model.dto.access.SelectRolRequestDTO;
 import com.UAM.RISINR.service.access.AccessService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,7 +38,7 @@ public class AccessController {
 
     // ---------- SELECCIONAR ROL ----------
     @PostMapping("/seleccionar-rol")
-    public ResponseEntity<LoginResponseDTO> seleccionarRol(@RequestBody SeleccionRolRequestDTO request,
+    public ResponseEntity<LoginResponseDTO> seleccionarRol(@RequestBody SelectRolRequestDTO request,
                                                            HttpServletRequest httpReq) {
 
         String ip = extraerIp(httpReq);

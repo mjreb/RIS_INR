@@ -37,7 +37,7 @@ public class JwtServiceAdapter implements JwtService {
 
             String jsonSubject = objectMapper.writeValueAsString(subject);
 
-            // Tu Cybersecurity firma RS256 y fija expiración 1h internamente
+            // Cybersecurity firma RS256 y fija expiración internamente
             return cybersecurity.encriptarDatos(jsonSubject);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("No se pudo serializar el subject del JWT", e);
@@ -47,12 +47,12 @@ public class JwtServiceAdapter implements JwtService {
     @Override
     public JwtSessionInfo parseToken(String tokenJWT) {
         try {
-            // Validación y lectura de claims usando tu clase de seguridad
+            // Validación y lectura de claims usando la clase de seguridad
             String publicKeyPem = cybersecurity.getLlavePublica();
             Claims claims = cybersecurity.desencriptarDatos(publicKeyPem, tokenJWT);
             String subjectJson = claims.getSubject();
 
-            // El subject es el JSON que nosotros mismos emitimos con nme/curp/asi/hst
+            // El subject es el JSON que emitimos con nme/curp/asi/hst
             Map<?, ?> map = objectMapper.readValue(subjectJson, Map.class);
 
             int nme = toInt(map.get("nme"));
