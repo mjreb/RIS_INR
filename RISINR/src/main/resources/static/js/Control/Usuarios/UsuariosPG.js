@@ -319,15 +319,30 @@ function regresar() {
 }
 
 function salir() {
-    //INVALIDAR SESION
-    $.ajax({
-        url: uriserv + '/logout',
-        type: 'GET', // Tipo de envio 
-        dataType: 'json', //Tipo de Respuesta
-        error: function (err) {
-            window.location = host + 'login.html';
-        }
-    });
+  var tc = 'Normal';
+
+  $.ajax({
+    url: '/RISSERVER/access/logout?tipoCierre=' + encodeURIComponent(tc),
+    type: 'POST',
+    xhrFields: { withCredentials: true }, // enviará la cookie 'token'
+    // No body ni headers necesarios
+    success: function () {
+      // ok, el backend marcó horaFin/tipoCierre y borró cookie
+    },
+    statusCode: {
+      401: function () { console.warn('Logout 401: no autenticado'); },
+      404: function () { console.warn('Logout 404: sesión no encontrada'); }
+    },
+    error: function (xhr) {
+      console.error('Error en logout', xhr.status);
+    },
+    complete: function () {
+      // Limpieza del lado cliente, pase lo que pase
+      document.cookie = 'token=; Max-Age=0; Path=/; SameSite=Lax';
+      sessionStorage.removeItem('token');
+      window.location = host + 'login.html';
+    }
+  });
 }
 
 function getsession() {

@@ -1,34 +1,24 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.UAM.RISINR.model;
 
 import java.io.Serializable;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.Objects;
 
-/**
- *
- * @author DDT1
- */
 @Embeddable
 public class PerfilPK implements Serializable {
 
-    @Basic(optional = false)
     @NotNull
     @Column(name = "Usuario_NumEmpleado")
     private int usuarioNumEmpleado;
-    @Basic(optional = false)
+    
     @NotNull
     @Size(min = 1, max = 45)
     @Column(name = "Usuario_CURP")
     private String usuarioCURP;
-    @Basic(optional = false)
+    
     @NotNull
     @Column(name = "Rol_idRol")
     private int rolidRol;
@@ -68,35 +58,22 @@ public class PerfilPK implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (int) usuarioNumEmpleado;
-        hash += (usuarioCURP != null ? usuarioCURP.hashCode() : 0);
-        hash += (int) rolidRol;
-        return hash;
+        return Objects.hash(usuarioNumEmpleado, usuarioCURP, rolidRol);
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof PerfilPK)) {
-            return false;
-        }
+        if (this == object) return true;
+        if (!(object instanceof PerfilPK)) return false;
         PerfilPK other = (PerfilPK) object;
-        if (this.usuarioNumEmpleado != other.usuarioNumEmpleado) {
-            return false;
-        }
-        if ((this.usuarioCURP == null && other.usuarioCURP != null) || (this.usuarioCURP != null && !this.usuarioCURP.equals(other.usuarioCURP))) {
-            return false;
-        }
-        if (this.rolidRol != other.rolidRol) {
-            return false;
-        }
-        return true;
+        return this.usuarioNumEmpleado == other.usuarioNumEmpleado
+            && this.rolidRol == other.rolidRol
+            && Objects.equals(this.usuarioCURP, other.usuarioCURP);
     }
 
     @Override
     public String toString() {
-        return "com.RIS.MVC.model.JPA.entities.PerfilPK[ usuarioNumEmpleado=" + usuarioNumEmpleado + ", usuarioCURP=" + usuarioCURP + ", rolidRol=" + rolidRol + " ]";
+        return "PerfilPK{usuarioNumEmpleado=" + usuarioNumEmpleado + ", usuarioCURP=" + usuarioCURP + ", rolidRol=" + rolidRol + " ]";
     }
     
 }
