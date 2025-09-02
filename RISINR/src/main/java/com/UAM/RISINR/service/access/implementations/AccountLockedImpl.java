@@ -1,4 +1,4 @@
-package com.UAM.RISINR.service.access.implementation;
+package com.UAM.RISINR.service.access.implementations;
 
 import com.UAM.RISINR.repository.DatosAccesoRepository;
 import com.UAM.RISINR.service.access.AccountLockedService;

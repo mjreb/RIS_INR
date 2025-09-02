@@ -7,6 +7,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     }
 
     /**
+     * Spring entienda bien la IP real del cliente y no la del proxy
      * X-Forwarded-For / X-Real-IP Spring las interpretará correctamente.
      */
     @Bean
@@ -39,21 +41,22 @@ public class SecurityConfig {
     }
 
     /**
+     * Reglas principales de seguridad de la aplicación
      * Cadena principal de filtros/autoriza­ción.
      */
     @Bean
-    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http,
+    public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtAuthenticationFilter jwtFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
            .authorizeHttpRequests(auth -> auth
-                // Permite despachos que NO son la petición original
                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD, DispatcherType.ASYNC).permitAll()
                 .requestMatchers("/error", "/RISSERVER/error").permitAll()
                 .requestMatchers("/access/login", "/access/seleccionar-rol").permitAll()
                 .requestMatchers("/login.html", "/css/**", "/js/**", "/img/**").permitAll()
                 .requestMatchers("/RISFSM/**").permitAll()
-                // /access/logout -> REQUIERE autenticación
+                .requestMatchers("/user/**").permitAll()
+                // /Todo lo demas -> REQUIERE autenticación
                 .anyRequest().authenticated()
            )
       .exceptionHandling(ex -> ex
@@ -62,7 +65,7 @@ public class SecurityConfig {
           // Autenticado sin permiso → 403
           .accessDeniedHandler((req, res, e) -> res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
       )
-      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //asegura que cada petición pase por el validador de tokens
 
         return http.build();
     }
