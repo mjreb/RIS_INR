@@ -43,6 +43,12 @@ public class Usuario implements Serializable {
     @Column(name = "ApellidoMaterno")
     private String apellidoMaterno;
     
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 45)
+    @Column(name = "CorreoElectronico")
+    private String correoElectronico;
+    
     @JoinColumn(name = "Area_idArea", referencedColumnName = "idArea")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private AreaDeServicio areaidArea;
@@ -104,6 +110,14 @@ public class Usuario implements Serializable {
 
     public void setApellidoMaterno(String apellidoMaterno) {
         this.apellidoMaterno = apellidoMaterno;
+    }
+    
+    public String getCorreoElectronico(){
+        return correoElectronico;
+    }
+    
+    public void setCorreoElectronico(String correoElectronico){
+        this.correoElectronico=correoElectronico;
     }
 
     public AreaDeServicio getAreaidArea() {
